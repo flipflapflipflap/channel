@@ -1,0 +1,209 @@
+/*
+* Prefixed by https://autoprefixer.github.io
+* PostCSS: v8.3.6,
+* Autoprefixer: v10.3.1
+* Browsers: last 2 Chrome versions,last 2 Firefox versions,last 2 Edge versions
+*/
+
+.spoiler  a {color: #000000 !important;}
+.spoiler:hover  a {color: #ffffff !important;}
+.spoiler * {opacity: 0;}
+.spoiler:hover * {opacity: 1;}
+/*#messagebuffer.linewrap img, #messagebuffer.linewrap video{max-width: 300px; max-height: 300px;}*/
+.profile-image {width:125px; height:auto; max-height:300px;}
+.profile-box {max-width: 137px; max-height:500px;}
+.panel-primary > .panel-heading {background-color:black !important;border-color: white !important;}
+.panel-primary {border-color: white !important;}
+#messagebuffer {width: auto;padding-left: 0px;padding-right: 0px;}
+#qualitymenu.dropdown-menu{width:100% !important;min-width:50px !important;margin-top:0px;z-index: 1;}
+#qualitymenu .header-drop-link {padding-left: 8px;}
+#qualitymenu .header-drop-link:hover {text-decoration:none;color:#fff;background-color:#2a9fd6}
+#leftpane-inner {margin-left:-10px !important;}
+
+#addfromurl, #searchcontrol, #customembed, #playlistmanager {
+    background-color: #272B30 !important;
+}
+
+/*  ----- Admin Font ----- */
+.userlist_item > .userlist_owner,.userlist_item > .userlist_op {font-weight: normal !important; }
+
+/* ----- Chat PM message -----*/
+.pm-msg {color:#E5A3AD;}
+.pm-msg em {font-size:10px;}
+
+/* Scrollbar
+Fuck Firefox */
+::-webkit-scrollbar {
+    width: 7px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(255,153,0,0);
+    border-radius: 0px;
+    background-color: #161a20;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    border-radius: 0px;
+    background: rgba(255,153,0,1);
+    box-shadow: inset 0 0 6px rgba(255,153,0,0.5);
+}
+::-webkit-scrollbar-thumb:window-inactive {
+    background: rgba(255,153,0,0.6);
+}
+
+
+
+/* ----- Playlist User & End Time ----- */
+
+.qe_user, .qe_endTime {
+	float:right;
+	padding-right:3px;
+}
+
+
+/* ----- Body and main container ----- */
+
+body {overflow-x:hidden}
+#mainpage {padding-top:52px}
+
+/* ----- Main rows ----- */
+
+#motdrow, #announcements, #main, #playlistrow {border:solid 2px transparent; margin-bottom:5px}
+#main > div, #playlistrow > div {padding-left:5px; padding-right:5px; margin-top:5px; margin-bottom:5px}
+
+/* ----- Buttons ----- */
+
+.btn {text-shadow:none}
+
+/* ----- Brand ----- */
+
+.navbar-brand {cursor:default}
+
+/* ----- MOTD row ----- */
+
+#motdwrap {margin:5px -10px}
+
+/* ----- MOTD ----- */
+
+#motdwrap {padding:10px; border-color:black; box-shadow:none}
+#togglemotd {margin-top:-5px}
+
+/* ----- Announcements ----- */
+
+#announcements .alert {margin:0px -10px 5px}
+
+/* ----- Drinkbar ----- */
+
+#drinkcount {margin:0px}
+
+/* ----- Userlist ----- */
+
+.userlist_item {cursor:pointer}
+
+/* ----- Playlist row inner panes ----- */
+
+#rightpane, #leftpane {margin-top:5px !important; margin-bottom:5px !important}
+
+/* ----- Default left pane wells ----- */
+
+#leftpane .well {margin-bottom:5px}
+
+/* ----- Queue titles ----- */
+
+.qe_title {margin-left:4px}
+
+/* ----- Footer ----- */
+
+#footer {height:auto}
+
+/* ----- CyTube Plus selectors ----- */
+
+#chanavatar {margin-right:3px; margin-top:-4px}
+
+#attbarrow-outer {padding:0px 5px}
+#attbar {height:22px; background-color:white}
+
+#titlerow {
+	background-position:0px center;
+	background-size:0% 100%; background-repeat:no-repeat;
+	margin:-5px -8px 5px;
+	border-radius:4px;
+}
+
+#titlerow-outer {padding:3px 5px; text-align:center; font-size:16pt; color:black; }
+
+#titlerow #currenttitle {
+	border:none;
+}
+
+#mediainfo {
+	background-color: #1C1E22; margin-bottom:0px; border-width: 1px 1px 0px; border-style:solid solid none;
+	border-color:black; border-radius:5px 5px 0px 0px;
+}
+
+#coverpl {
+	position:absolute; left:5px; top:0px; background-color:white;
+	background-position:center center;
+}
+#redirectPlayer {
+    position:absolute; left:0px; top:0px; background-color:white;
+    background-position:center center; cursor:pointer;
+}
+
+#leftpanecontrols {margin-right:-4px}
+#layout-btn {margin-right:10px}
+#fluid-btn {margin-right:10px}
+
+#configwrap, #modewrap, #themewrap {text-align:left}
+#configwrap {padding-left:10px !important;}
+#mode-sel, #theme-sel {width:80%; margin:0px auto}
+.theme-header {text-align:center; font-size:9pt; font-style:italic}
+footer {padding-bottom:5px}
+#leftfooter {font-size:10pt; margin-bottom:50px}
+#rightfooter {float:right; margin-top:-50px}
+
+#chatfunc-dropdown {
+    position:absolute; top:22px; display:block; z-index:10000; padding:5px;
+	overflow:auto; margin-right:5px;
+}
+
+/*Reddit flair*/
+.username::before{background:url('./Images/uex.png');}
+.teampapika::before{background:url('./Images/papika.png');}
+.teamcocona::before{background:url('./Images/cocona.png');}
+.teamyayaka::before{background:url('./Images/yayaka.png');}
+.teamtt392::before{background:url('./Images/tt392.png');}
+.teamsalt::before{background:url('./Images/salt.png');}
+.teamhidaka::before{background:url('./Images/hidaka.png');}
+.teamsayuri::before{background:url('./Images/sayuri.png');}
+.teamtoto::before{background:url('./Images/toto.png');}
+.teamyuyu::before{background:url('./Images/yuyu.png');}
+.teamnyunyu::before{background:url('./Images/nyunyu.png');}
+.teammimi::before{background:url('./Images/mimi.png');}
+.teamiroha::before{background:url('./Images/iroha.png');}
+.teamwelwitschia::before{background:url('./Images/welwitschia.png');}
+.teamocchan::before{background:url('./Images/occhan.png');}
+.teamgranny::before{background:url('./Images/granny.png');}
+.teamgrandwizard::before{background:url('./Images/grandwizard.png');}
+
+.username::before{
+	content:"AA";
+	background-size:20px 20px !important;
+	background-repeat:no-repeat !important;
+	color:rgba(0,0,0,0);
+}
+#messagebuffer>div{font-size:18px;}
+
+/* ----- Additional jQuery classes ----- */
+
+.relative {position:relative}
+
+.covered {visibility:hidden; opacity:0}
+
+.dist {background-color:gold; color:red; font-size:12pt; padding:3px}
+
+span.glyphicon.glyphicon-time {
+	color: rgba(255,0,0,0);
