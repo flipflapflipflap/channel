@@ -1,0 +1,79 @@
+body {background-image:url(https://dl.dropbox.com/s/26wnncoiwoh4dxb/background.jpg);
+            background-position: bottom right;
+            background-attachment: fixed;
+            /*background-size: 100% auto;*/
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+}
+footer
+{
+    background:rgba(0,0,0,0)!important;
+    color:rgba(0,0,0,0)!important;
+    text-align:center;
+    width:100%;
+}
+
+#motd 
+{
+    font-weight: bold;
+    font-size: large;
+    text-align: center;
+    border:none;
+}
+
+#announcements
+{
+    font-size: large;
+    background-color:rgba(15.3,16.9,18.8,.945);
+    text-align: center;
+    border:none;
+}
+#announcements.row
+{
+    background-color:rgba(0,0,0,0);
+}
+
+#motdwrap
+{
+    background-color:rgba(15.3,16.9,18.8,.945);
+    border:none;
+}
+ 
+
+/*Changes the color of the text*/
+body, header, p, #mainpage, .userlist_owner,.userlist_op,.userlist_guest, a, .navbar-brand, .navbar-text, .navbar-link{color:#e7857a !important;}
+body, header, p {color:#ffa500;}
+
+/*Alternate message backgrounds*/
+#messagebuffer {background-color:rgba(15.3,16.9,18.8,.98);}
+#messagebuffer div:nth-child(even) {background-color:rgba(22.7,22.7,22.7,.98);}
+#messagebuffer div:nth-child(odd) {background-color:rgba(15.3,16.9,18.8,.98);}
+#messagebuffer div.nick-hover{ background-color:rgba(22.5,12.6,11.6,.99);}
+#messagebuffer div.nick-highlight, #messagebuffer div.nick-highlight > a{ color: #FFFFFF;}
+
+#userlist {
+	background-color:rgba(15.3,16.9,18.8,.98);
+}
+
+#config-well,#config-wrap {
+    background-color:rgba(15.3,16.9,18.8,.945);
+    border:none;
+}
+
+/*Background for easier reading of some shit*/
+DIV#plmeta, DIV#chatheader, P#currenttitle, DIV#plmeta, #videowrap-header {background-color:rgba(39,43,48,.97);}
+#currenttitle, #chatheader, #messagebuffer, #userlist, #guestlogin, #plmeta {border-color:rgba(22.7,22.7,22.7,.98);}
+
+//SPAN#usercount.pointer:after {content:"~ ~";}
+//SPAN#usercount.pointer:before {content:"~ ~";}
+SPAN#usercount.pointer {    
+    -webkit-transform: rotate(36000deg) /* rotateX(36000deg) */;
+    -moz-transform: rotate(36000deg) /* rotateX(36000deg) */;
+    transform: rotate(36000deg) /* rotateX(36000deg) */;
+    -webkit-transition: -webkit-transform 50.25s;
+    -moz-transition: -moz-transform 50.25s;
+    transition: transform 50.25s;
+}
+
