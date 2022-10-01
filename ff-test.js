@@ -2360,7 +2360,7 @@ function countdown (element) {
 		if(Hour < 10) Hour = '0' + Hour;
 		if(Minute < 10) Minute = '0' + Minute;
 		if(Seconds < 10) Seconds = '0' + Seconds;//these lines add a 0 if it's less than 10
-
+fieldNameElement.innerHTML = "test";
 		//check if time is reasonable. if not gtfo
 		if (Hour > 23 || Minute > 59) {
 			console.error('Countdown error: time is incorrect ' + Hour + ' : ' + Minute + ' : ' + Seconds);
