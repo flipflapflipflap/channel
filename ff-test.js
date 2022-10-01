@@ -2368,18 +2368,21 @@ function countdown (element) {
 			cdtext = Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 		}
 		else if (Month == 0) {
-			if (Day > (31 - dayoffset)) {
-						temp = (31 - dayoffset) - Day;
-						cdtext = Day
-					} else if (Day == (31 - dayoffset) && Hour < (24-timeoffset)) {
-						cdtext = "THE TIME HAS COME";
-					} else if(Day == (31 - dayoffset)){
-							fieldNameElement.innerHTML = "Flip Flapping in:";
-							cdtext = (Hour-(24-timeoffset)) + ' : ' + Minute + ' : ' + Seconds;
-					}
-					else {
+			if (day > dayoffset) {
+						//temp = (31 - dayoffset) - day;
+						//cdtext = temp + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 						cdtext = 11 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+					} else if (day == (dayoffset) && hour > (18)) {
+						cdtext = "THE TIME HAS COME";
+					} else(day < dayoffset){
+							temp = dayoffset - day;
+							temp = '0' + temp;
+							fieldNameElement.innerHTML = "Flip Flapping in:";
+							cdtext = temp + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 					}
+//					else {
+//						cdtext = 11 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+//					}
 		}
 		else {
 			if (Month == -1){
