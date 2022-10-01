@@ -2370,7 +2370,7 @@ function countdown (element) {
 		else if (Month == 0) {
 			if (Day > (31 - dayoffset)) {
 						temp = (31 - dayoffset) - Day;
-						cdtext = temp + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+						cdtext = 'what the fuck';
 					} else if (Day == (31 - dayoffset) && Hour < (24-timeoffset)) {
 						cdtext = "THE TIME HAS COME";
 					} else if(Day == (31 - dayoffset)){
