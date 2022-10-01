@@ -757,6 +757,451 @@ function toggleMinLayout() {
 }
 
 
+//////////////////
+//////////////////
+//////////////////
+//////////////////
+
+// *** BEGIN SEARCH
+
+//////////////////
+//////////////////
+//////////////////
+//////////////////
+//////////////////
+//////////////////
+//////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* ----- User Interface ----- */
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+function setPanelProperties(div) {
+	height = $("#userlist").height();
+	width = $("#userlist").width();
+	$(div).css({'background-color':'black', 'height':height + 2 + 'px', 'width':width + 'px'});
+}
+
+function antiAFKfunction() {
+	$(".userlist_item").each(function() {
+		var ulthis = $(this);
+		if (ulthis.children().eq(1).text() === CLIENT.name && ulthis.hasClass("userlist_afk")) {
+			socket.emit("chatMsg", {msg: '/afk'});
+			return;
+		}
+	});
+}
+
+function turnOffBtn() {
+	turnoffbtn = true;
+	$("#chatfunc-dropdown").find('button').each(function() {
+		$(this).hasClass("btn-danger") ? turnoffbtn = false : '';
+	});
+	turnoffbtn ? $("#chatflair").removeClass("label-success").addClass("label-default") : $("#chatflair").removeClass("label-default").addClass("label-success");
+}
+
+function makeChatPanel() {
+	$("#userlist").append('<div id="chatfunc-dropdown" />');
+	$("#chatfunc-dropdown").append('<div id="spamclear">Auto clear chat</div>');
+	spamcleardiv = $("<div/>").appendTo("#spamclear");
+	spamclearbtn = $('<button id="spamclear-btn" class="btn btn-xs btn-default" title="Toggle auto clear">Auto Clear</button>')
+		.appendTo(spamcleardiv)
+		.on("click", function() {
+			if (!CLEARING) {
+				$(this).text('Stop Clearing').addClass('btn-danger');
+				CLEARING = setInterval(function() {
+					socket.emit("chatMsg", {msg: '/clear'});
+				}, 500);
+			} else {
+				$(this).text('Auto Clear').removeClass('btn-danger');
+				clearInterval(CLEARING);
+				CLEARING = false;
+			}
+			turnOffBtn();
+		});
+
+	$("#chatfunc-dropdown").append('<div id="antiafk">Never go AFK</div>');
+	antiafkdiv = $("<div/>").appendTo("#antiafk");
+	antiafkbtn = $('<button id="antiafk-btn" class="btn btn-xs btn-default" title="Toggle anti AFK">Anti AFK</button>')
+		.appendTo(antiafkdiv)
+		.on("click", function() {
+			if (!ANTIAFK) {
+				antiAFKfunction();
+				$(this).addClass('btn-danger');
+				ANTIAFK = socket.on("setAFK", antiAFKfunction);
+			} else {
+				$(this).removeClass('btn-danger');
+				socket.removeListener("setAFK", antiAFKfunction);
+				ANTIAFK = false;
+			}
+			turnOffBtn();
+		});
+
+	$("#chatfunc-dropdown").append('<div id="imgsize">Adjust image/webm size</div>');
+	imgsizediv = $("<div/>").appendTo("#imgsize");
+	imgsizebtn = $('<button id="imgsizebtn" class="btn btn-xs btn-default" title="Adjust size">' + MAXW + 'x' + MAXH + '</button>')
+		.appendTo(imgsizediv)
+		.on("click", function() {
+			var tempvar = $("#chatline").val();
+			var tempvar2 = tempvar.split(" ");
+			if (tempvar2[0] > 0 && tempvar2[1] > 0) {
+				MAXW = tempvar2[0];
+				setOpt(CHANNEL.name + "_MAXW", MAXW);
+				MAXH = tempvar2[1];
+				setOpt(CHANNEL.name + "_MAXH", MAXH);
+				$(".pm-buffer.linewrap img, .pm-buffer.linewrap video, #messagebuffer.linewrap img, #messagebuffer.linewrap video").css({"max-width": MAXW + "px","max-height": MAXH + "px"});
+				$("#chatline").val("");
+				$(this).text(MAXW + 'x' + MAXH);
+			} else {
+				alert("Invalid input. Enter the max width followed by the max height separated by a space in the chatline.\nEx. \"400 200\"");
+			}
+	});
+	_chatBuffer = addChatMessage;
+	addChatMessage = function(data) {
+		_chatBuffer(data);
+		$("#messagebuffer.linewrap img").css({"max-height": MAXH + "px","max-width": MAXW + "px"});
+	}
+}
+$("#messagebuffer.linewrap img").css({"max-height": MAXH + "px","max-width": MAXW + "px"});
+
+makeChatPanel();
+chatfunc = $("#chatfunc-dropdown").detach();
+
+
+chatflair = $('<span id="chatflair" class="label label-default pull-right pointer" title="Press F">F</span>')
+	.insertAfter("#modflair")
+	.on("click", function() {
+		!CHATFUNC ? chatfunc.appendTo($("#userlist")) : chatfunc.detach();
+		CHATFUNC = !CHATFUNC;
+		toggleClearBtn();
+		setPanelProperties("#chatfunc-dropdown");
+	});
+
+
+autoscrollbtn = $('<span id="autoscrollbtn" class="label label-default pull-right pointer" title="Toggle to always scroll chat">S</span>')
+	.insertAfter("#modflair")
+	.on("click", function() {
+		if ($(this).hasClass("label-success")) {
+			$(this).removeClass("label-success").addClass("label-default");
+			socket.removeListener("chatMsg", scrollChat);
+		} else {
+			$(this).addClass("label-success").removeClass("label-default");
+			socket.on("chatMsg", scrollChat);
+		}
+	});
+
+
+// optional removing of "Home" menu from header
+$("#home-link").remove();
+
+$("#layout-link li:nth-child(2) a").on("click", function() {
+	$("#transformationform, #modeform").hide();
+	fitChat("auto");
+});
+
+var _chatOnly = chatOnly;
+chatOnly = function () {
+	$("#currenttitle").css({"display":"inline","border-width":"0px"}).appendTo($("#chatheader"));
+	webmthing = $("<div/>").appendTo($('<div id="webmthing">Toggle webms</div>').appendTo(chatfunc));
+	embedvid.removeClass("btn-sm").addClass("btn-xs").appendTo(webmthing);
+	loopwebm.removeClass("btn-sm").addClass("btn-xs").appendTo(webmthing);
+	autovid.removeClass("btn-sm").addClass("btn-xs").appendTo(webmthing);
+	_chatOnly();
+	scrollChat();
+	if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+		$("#findtime,#currenttitle").remove();
+		$("span.label.label-default.pull-right.pointer").each(function() {
+			var btext = $(this).text();
+			if (btext.length > 1) {
+				$(this).text(btext.charAt(0));
+			}
+		});
+	}
+};
+
+var	vidRemoved = false;
+
+function removeVideo() {
+	removeNicoText();
+	vidRemoved = true;
+	$("#currenttitle").css({"display":"inline","border-width":"0px"}).appendTo($("#chatheader"));
+	try {
+		PLAYER.setVolume(0);
+		if (PLAYER.mediaType === "rv") {
+			killVideoUntilItIsDead($(PLAYER.player));
+		}
+	} catch (e) {
+	}
+
+	PLAYERHTML = $(".embed-responsive.embed-responsive-16by9").html();
+	$("#videowrap").hide().attr("id","videowrap_disabled");
+	$(".embed-responsive.embed-responsive-16by9").html("");
+
+	$("#chatwrap").removeClass("col-lg-5 col-md-5").addClass("col-md-12");
+	$('a[onclick*="removeVideo"]').attr("onclick", "javascript:restoreVideo()").text("Restore Video");
+}
+
+
+function restoreVideo() {
+	vidRemoved = false;
+	$("#transformationform, #modeform").show();
+	$("#chatwrap").removeClass("pull-right").addClass("col-lg-5 col-md-5").removeClass("col-md-12");
+	$("#videowrap_disabled").attr("id","videowrap").show();
+	$(".embed-responsive.embed-responsive-16by9").html(PLAYERHTML);
+	$('a[onclick*="restoreVideo"]').attr("onclick", "javascript:removeVideo()").text("Remove Video");
+	setTimeout(function() {
+		PLAYER.mediaType = PLAYER.mediaId = "";
+		socket.emit("playerReady");
+		setTimeout(function() {PLAYER.setVolume(.4);},500);
+	}, 1);
+	$("#currenttitle").removeAttr("style").appendTo($("#videowrap-header"));
+}
+
+// changing title bar description
+changeTitle();
+
+quality = $('<div id="quality" class="btn btn-sm btn-default" title="Change the quality. This will refresh your player." >' + $('option[value="' + USEROPTS.default_quality + '"]').text() + ' <b class="caret"></b></div>')
+	.appendTo("#playercontrols")
+	.on("click",function() {
+		$(document).unbind("click.quality");
+		toggleDiv("#qualitymenu");
+		setTimeout(function() {
+			$(document).on("click.quality", function() {
+				$("#qualitymenu").hide();
+				$(this).unbind("click.quality");
+			});
+		},50);
+	});
+qmenu = $('<ul id="qualitymenu" class="dropdown-menu" />')
+	.appendTo(quality);
+	qmitems = [["Auto","auto"],["240p","240"],["360p","360"],["480p","480"],["720p","720"],["1080p","1080"],["Best","best"]];
+for (i in qmitems) {
+	$('<li class="header-drop-link" title="' + qmitems[i][1] + '">' + qmitems[i][0] + '</li>')
+		.appendTo(qmenu)
+		.on("click",function() {
+			qval = $(this).attr("title");
+			qmenu.detach();
+			quality.html($(this).text() + ' <b class="caret"></b>');
+			qmenu.appendTo(quality);
+			USEROPTS.default_quality = qval;
+			setOpt("default_quality",USEROPTS.default_quality);
+			$("#us-default-quality").val(qval);
+			PLAYER.mediaType = PLAYER.mediaId = "";
+			socket.emit("playerReady");
+		});
+}
+
+// adding playlist expanding button
+expandbtn = $('<button id="expand-btn" class="btn btn-sm btn-default" title="Expand playlist" />')
+	.append('<span class="glyphicon glyphicon-resize-full"></span>')
+	.prependTo("#videocontrols")
+	.on("click",expandQueue);
+
+// adding media database and gallery wrap
+leftpanecontrols = $('<div id="leftpanecontrols" class="btn-group pull-right" />')
+	.prependTo("#leftpane");
+
+// adding layout configuration panel button
+layoutbtn = $('<button id="layout-btn" class="btn btn-sm btn-default btn-success pull-right" />')
+	.html('<span class="glyphicon glyphicon-cog"></span> Layout')
+	.prependTo(leftpanecontrols)
+	.on("click",toggleConfigPanel);
+$("#playlistmanagerwrap").show();
+
+// adding layout configuration well
+configwrap = $('<div id="configwrap" class="col-lg-12 col-md-12" />')
+	.appendTo("#leftpane-inner");
+configwell = $('<div id="config-well" class="well form-horizontal" />')
+	.appendTo(configwrap);
+
+// adding layout configuration form
+configform = $('<div id="configform" class="form-group" />')
+	.appendTo(configwell);
+
+$('<div class="col-lg-3 col-md-3">Global layout</div>')
+	.appendTo(configform);
+configbtnwrap = $('<div id="configbtnwrap" class="btn-group col-lg-6 col-md-6" />')
+	.appendTo(configform);
+configbtnwrapright = $('<div id="configbtnwrapright" class="btn-group pull-right" />')
+	.appendTo(configform);
+
+configbtn = $('<button id="config-btn" class="btn btn-sm btn-default" title="Configure layout" />')
+	.html('<i class="glyphicon glyphicon-cog"></i>  Configure Layout</button>')
+	.appendTo(configbtnwrap)
+	.on("click",showConfig);
+
+fluidbtn = $('<button id="fluid-btn" class="btn btn-sm btn-default btn-success pull-right">Fluid</button>')
+	.appendTo(configbtnwrapright)
+	.on("click", function() {
+		toggleFluidLayout();
+		FLUID = !FLUID;
+		setOpt(CHANNEL.name + "_FLUID", FLUID);
+		!FLUID ? fluidbtn.removeClass('btn-success') : fluidbtn.addClass('btn-success');
+	});
+
+minlayoutbtn = $('<button id="minlayout-btn" class="btn btn-sm btn-default pull-right">Minimize</button>')
+	.appendTo(configbtnwrapright)
+	.on("click",toggleMinLayout);
+
+// adding fast commands and volume buttons
+funcbtnform = $('<div id="funcbtnform" class="form-group" />')
+	.appendTo(configwell);
+$('<div class="col-lg-3 col-md-3">Command buttons</div>')
+	.appendTo(funcbtnform);
+funcbtnwrap = $('<div id="funcbtnwrap" class="btn-group col-lg-6 col-md-6" />')
+	.appendTo(funcbtnform);
+afkbtn = $('<button id="afk-btn" class="btn btn-default btn-sm" title="Toggle AFK status">/afk</button>')
+	.appendTo(funcbtnwrap)
+	.on("click", function() {
+		socket.emit("chatMsg", {msg: '/afk'});
+	});
+clearbtn = $('<button id="clear-btn" class="btn btn-default btn-sm" title="Clear chat">/clear</button>')
+	.appendTo(funcbtnwrap)
+	.on("click", function() {
+		if (confirm('Are you sure to clear the chat window?')) {
+			socket.emit("chatMsg", {msg: '/clear'});
+		}
+	});
+toggleClearBtn();
+
+
+// adding selector with player display modes
+modeform = $('<div id="modeform" class="form-group" />')
+	.appendTo(configwell);
+$('<div class="col-lg-3 col-md-3">Display mode</div>')
+	.appendTo(modeform);
+modewrap = $('<div id="modewrap" class="col-lg-7 col-md-7" />')
+	.appendTo(modeform);
+modesel = $('<select id="mode-sel" class="form-control" />')
+	.append('<option value="syMode">synchtube mode</option>')
+	.append('<option value="kMode">cinema mode</option>')
+	.append('<option value="chMode">chatroom mode</option>')
+	.append('<option value="sMode">silent mode</option>')
+	.append('<option value="rMode">radio mode</option>')
+	.appendTo(modewrap)
+	.on("change", function() {
+		$("#config-btn, #configbtnwrap br").hide();
+		$("#min-layout").parent().hide();
+		PLAYER.mediaType=="jw" ? $("#mediarefresh").click() : '';
+		setMode(modesel.val());
+		scrollQueue();
+		scrollChat();
+	});
+
+
+// adding selector with channel themes
+themeform = $('<div id="themeform" class="form-group" />')
+	.appendTo(configwell);
+$('<div class="col-lg-3 col-md-3">Personal theme</div>')
+	.appendTo(themeform);
+themewrap = $('<div id="themewrap" class="col-lg-7 col-md-7" />')
+	.appendTo(themeform);
+
+themesel = $('<select id="theme-sel" class="form-control" />')
+	.append('<option value="/css/themes/light.css"># Light</option>')
+	.append('<option value="/css/themes/bootstrap-theme.min.css"># Bootstrap</option>')
+	.append('<option value="/css/themes/slate.css"># Slate</option>')
+	.append('<option value="/css/themes/cyborg.css"># Cyborg</option>')
+	.appendTo(themewrap)
+	.on("change", function() {
+		chatfunc.detach();
+		$("#playlistmanagerwrap").show();
+		CHATFUNC = false;
+		USERTHEME = themesel.val();
+		setUserCSS();
+		setOpt(CHANNEL.name + "_theme", USERTHEME);
+	});
+
+ThemesCSS.length > 0 ? themesel.append('<option value="" class="theme-header" disabled>additional themes</option>') : '';
+for (i in ThemesCSS) {
+	themesel.append('<option value="' + ThemesCSS[i][1] + '">' + ThemesCSS[i][0] + '</option>');
+}
+
+themesel.val(USERTHEME);
+
+// adding temporary hiding options
+hideform = $('<div id="hideform" class="form-group" />')
+	.appendTo(configwell);
+
+$('<div class="col-lg-3 col-md-3">Temporary hide</div>')
+	.appendTo(hideform);
+hidewrap = $('<div id="hidewrap" class="btn-group col-lg-6 col-md-6" />')
+	.appendTo(hideform);
+
+hidemotdbtn = $('<button id="hidemotd-btn" class="btn btn-sm btn-default" title="Hide MOTD">MOTD</button>')
+	.appendTo(hidewrap)
+	.on("click", function() {
+		HIDEMOTD = !HIDEMOTD;
+		setOpt(CHANNEL.name + "_HIDEMOTD", HIDEMOTD);
+		toggleDiv("#motdrow");
+		HIDEMOTD ? hidemotdbtn.addClass('btn-danger') : hidemotdbtn.removeClass('btn-danger');
+		HIDEMOTD ? hidemotdbtn.attr("title","Show MOTD") : hidemotdbtn.attr("title","Hide MOTD");
+});
+
+hideannbtn = $('<button id="hideann-btn" class="btn btn-sm btn-default" title="Hide Announcements">Ann</button>')
+	.appendTo(hidewrap)
+	.on("click", function() {
+		HIDEANN = !HIDEANN;
+		setOpt(CHANNEL.name + "_HIDEANN", HIDEANN);
+		toggleDiv("#announcements");
+		HIDEANN ? hideannbtn.addClass('btn-danger') : hideannbtn.removeClass('btn-danger');
+		HIDEANN ? hideannbtn.attr("title","Show Announcements") : hideannbtn.attr("title","Hide Announcements");
+});
+
+hideplbtn = $('<button id="hidepl-btn" class="btn btn-sm btn-default" title="Hide Playlist">PL</button>')
+	.appendTo(hidewrap)
+	.on("click", function() {
+		HIDEPL = !HIDEPL;
+		setOpt(CHANNEL.name + "_HIDEPL", HIDEPL);
+		toggleDiv("#queue");
+		toggleDiv("#plmeta");
+		HIDEPL ? hideplbtn.addClass('btn-danger') : hideplbtn.removeClass('btn-danger');
+		HIDEPL ? hideplbtn.attr("title","Show Playlist") : hideplbtn.attr("title","Hide Playlist");
+});
+
+hidehfbtn = $('<button id="hidehf-btn" class="btn btn-sm btn-default" title="Hide Header and Footer">H/F</button>')
+	.appendTo(hidewrap)
+	.on("click", function() {
+		HIDEHF = !HIDEHF;
+		setOpt(CHANNEL.name + "_HIDEHF", HIDEHF);
+		$("nav").css('display')!="none" ? headerMode("fixed") : headerMode(UCONF.header);
+		toggleDiv("nav");
+		toggleDiv("footer");
+		HIDEHF ? hidehfbtn.addClass('btn-danger') : hidehfbtn.removeClass('btn-danger');
+		HIDEPL ? hidehfbtn.attr("title","Show Header and Footer") : hidehfbtn.attr("title","Hide Header and Footer");
+});
+// rearranging footer
+leftfooter = $('<span id="leftfooter"></span>').appendTo("footer .container");
+
+// updating user visits
+USERVISITS++;
+setOpt(CHANNEL.name + "_visits", USERVISITS);
+
+$('<span>My visits: </span><span class="badge footer-badge">' + USERVISITS + '</span><span> / </span>')
+	.appendTo(leftfooter);
+$('<span>Current online time: </span><span id="onlinetime" class="badge footer-badge">0:00</span>')
+	.appendTo(leftfooter);
+setInterval(onlineTime, 60000);
+
+//////////////////
+//////////////////
+//////////////////
+//////////////////
+
+// *** END SEARCH
+
+//////////////////
+//////////////////
+//////////////////
+//////////////////
+//////////////////
+//////////////////
+//////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1112,6 +1557,819 @@ $(document).keydown(function(event) {
 
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+// danmaku or nico video scrolling text mode for cytu.be
+// paste into channel settings -> edit -> javascript
+// stolen from https://cytu.be/r/25_days_of_autism
+// extracted nico nico code from december.js and css
+// ripped out all the garbage (what the hell is wrong with these people)
+// changed the button to say danmaku (uncultured assholes)
+
+// The interval of time (in ms) to flush messages to the screen
+var NICO_NICO_MESSAGE_QUEUE_TIME = getOrDefault(CHANNEL.name + "_NICO_NICO_MESSAGE_QUEUE_TIME", 100);
+
+var NICORIPOFF = getOrDefault(CHANNEL.name + "_NICORIPOFF", false);
+var marqueeOffset = 0;
+var marqueeheight = 28;
+var playerparent = document.getElementsByClassName("embed-responsive-16by9")[0];
+var playerwrap = document.getElementById("videowrap");
+
+function getNicoPlayerDimensions() {
+	var NICOW = playerparent.offsetWidth;
+	return {
+		NICOH: playerwrap.offsetHeight * 3 / 4,
+		NICOW: NICOW,
+		NICOS: NICOW * .2
+	};
+}
+
+// Patch in enable button here
+var controls = document.getElementById("emotelistbtn").parentNode;
+
+nicobtn = $('<button id="nicobtn" class="btn btn-sm ' + (!NICORIPOFF ? 'btn-default' : 'btn-success') + '" title="Chat on video">Danmaku~</button>')
+	.appendTo("#playercontrols")
+	.on("click", function() {
+		NICORIPOFF = !NICORIPOFF;
+		setOpt(CHANNEL.name + "_NICORIPOFF", NICORIPOFF);
+		if (!NICORIPOFF) {
+			this.className = "btn btn-sm btn-danger";
+			removeNicoText();
+		} else {
+			this.className = "btn btn-sm btn-success";
+		}
+	});
+//socket.on("chatMsg", addNicoNicoMessageDataToQueue);
+socket.on("clearchat", removeNicoText);
+
+// Flush messages to the screen every 100ms
+var nicoNicoMessageDataQueue = [];
+function addNicoNicoMessageDataToQueue(data) {
+	nicoNicoMessageDataQueue.push(data);
+}
+
+function handleNicoNicoMessageDataQueue() {
+	if (nicoNicoMessageDataQueue.length > 0) {
+		nicoChineseRipOff(nicoNicoMessageDataQueue);
+		nicoNicoMessageDataQueue = [];
+	}
+
+	setTimeout(handleNicoNicoMessageDataQueue, NICO_NICO_MESSAGE_QUEUE_TIME);
+}
+handleNicoNicoMessageDataQueue();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// who the hell is OBTO?
+// BEGIN OBTO EDIT
+
+var NicoNicoComment = function () {
+	function NicoNicoComment(commentContainerElement) {
+		_classCallCheck(this, NicoNicoComment);
+
+		this._commentContainerElement = commentContainerElement;
+		this._boundAnimationEndHandler = this._handleAnimationEnd.bind(this);
+		this._isActive = false;
+		this._activateTimeout = undefined;
+		this._animationTimeout = undefined;
+		this._lastActive = Date.now();
+
+		this._initDomElement();
+	}
+
+	_createClass(NicoNicoComment, [{
+		key: 'activate',
+		value: function activate(message, className, cssText) {
+			var _this = this;
+			var contains_image = message.indexOf("<img ") > -1;
+
+			if (!this.domElement) {
+				this._initDomElement();
+			}
+
+			if (this._activateTimeout) {
+				clearTimeout(this._activateTimeout);
+				this._activateTimeout = undefined;
+			}
+
+			// Trigger next frame to ensure the animation plays again
+			this.reset();
+			this._activateTimeout = setTimeout(function () {
+				_this.domElement.innerHTML = '<span>' + message + '</span>';
+				_this.domElement.className = className;
+				_this.domElement.style.cssText = cssText;
+				_this._isActive = true;
+
+				var nicoDimensions = getNicoPlayerDimensions();
+				var imgpx = 0;
+				if (contains_image) {
+					imgpx = nicoDimensions.NICOW * .55;
+				}
+
+				// Manually calculate animation time
+				var timeout = (nicoDimensions.NICOW + _this.domElement.firstChild.offsetWidth + imgpx) / nicoDimensions.NICOS * 1000;
+				_this._animationTimeout = setTimeout(function() {
+					_this.reset();
+				}, timeout);
+			}, 0);
+		}
+	}, {
+		key: 'reset',
+		value: function reset() {
+			if (!this._isActive || !this.domElement) {
+				return;
+			}
+
+			this.domElement.innerHTML = '';
+			this.domElement.className = '';
+			this.domElement.style.cssText = '';
+			this._isActive = false;
+			this._lastActive = Date.now();
+		}
+	}, {
+		key: 'cleanup',
+		value: function cleanup() {
+			this._removeListeners();
+			this._commentContainerElement.removeChild(this.domElement);
+		}
+	}, {
+		key: 'isActive',
+		value: function isActive() {
+			return this._isActive;
+		}
+	}, {
+		key: 'getLastActiveTime',
+		value: function getLastActiveTime() {
+			if (this._isActive) {
+				return Date.now();
+			}
+
+			return this._lastActive;
+		}
+	}, {
+		key: '_handleAnimationEnd',
+		value: function _handleAnimationEnd() {
+			this.reset();
+		}
+	}, {
+		key: '_initDomElement',
+		value: function _initDomElement() {
+			if (this.domElement) {
+				return;
+			}
+
+			this._removeListeners();
+			this.domElement = document.createElement('div');
+			this._commentContainerElement.appendChild(this.domElement);
+			this._addListeners();
+		}
+	}, {
+		key: '_addListeners',
+		value: function _addListeners() {
+			if (!this.domElement) {
+				return;
+			}
+
+			this.domElement.addEventListener(NicoNicoComment.ANIMATION_END_EVENT, this._boundAnimationEndHandler);
+		}
+	}, {
+		key: '_removeListeners',
+		value: function _removeListeners() {
+			if (this._animationTimeout) {
+				clearTimeout(this._animationTimeout);
+				this._animationTimeout = undefined;
+			}
+
+			if (!this.domElement) {
+				return;
+			}
+
+			this.domElement.removeEventListener(NicoNicoComment.ANIMATION_END_EVENT, this._boundAnimationEndHandler);
+		}
+	}]);
+
+  return NicoNicoComment;
+}();
+
+NicoNicoComment.ANIMATION_END_EVENT = function () {
+	var element = document.createElement('fakeelement');
+	var transitions = {
+		"animation": "animationend",
+		"OAnimation": "oAnimationEnd",
+		"MozAnimation": "animationend",
+		"WebkitAnimation": "webkitAnimationEnd"
+	};
+
+	for (var t in transitions) {
+		if (element.style[t] !== undefined) {
+			return transitions[t];
+		}
+	}
+}();
+
+var NicoNicoCommentManager = function () {
+	function NicoNicoCommentManager(commentContainerElement) {
+		_classCallCheck(this, NicoNicoCommentManager);
+
+		this._commentContainerElement = commentContainerElement;
+		this._comments = [];
+		for (var i = 0; i < NicoNicoCommentManager.MINIMUM_COMMENTS_ALLOCATED; i++) {
+			this._comments.push(new NicoNicoComment(this._commentContainerElement));
+		}
+
+		this._cleanupUnusedCommentsTimeout();
+	}
+
+	_createClass(NicoNicoCommentManager, [{
+		key: 'cleanup',
+		value: function cleanup() {
+			for (var i = 0; i < this._comments.length; i++) {
+				var comment = this._comments[i];
+				comment.cleanup();
+			}
+			this._comments = [];
+
+			if (this._cleanupTimeout) {
+				clearTimeout(this._cleanupTimeout);
+				this._cleanupTimeout = undefined;
+			}
+		}
+	}, {
+		key: 'addComments',
+		value: function addComments(messageConfigArr) {
+			var messageIndex = 0;
+			for (var i = 0; i < this._comments.length && messageIndex < messageConfigArr.length; i++) {
+				var comment = this._comments[i];
+				if (comment.isActive()) {
+					continue;
+				}
+
+				var config = messageConfigArr[messageIndex];
+				comment.activate(config.message, config.className, config.cssText);
+				messageIndex++;
+			}
+
+			// Add any remaining messages by creating more comments
+			for (; messageIndex < messageConfigArr.length; messageIndex++) {
+				var config = messageConfigArr[messageIndex];
+				var comment = new NicoNicoComment(this._commentContainerElement);
+				comment.activate(config.message, config.className, config.cssText);
+				this._comments.push(comment);
+			}
+		}
+	}, {
+		key: '_cleanupUnusedCommentsTimeout',
+		value: function _cleanupUnusedCommentsTimeout() {
+			var _this2 = this;
+
+			this._cleanupUnusedComments();
+			this._cleanupTimeout = setTimeout(function () {
+				_this2._cleanupUnusedCommentsTimeout();
+			}, NicoNicoCommentManager.TARGET_EVICTION_TIME_MS);
+		}
+	}, {
+		key: '_cleanupUnusedComments',
+		value: function _cleanupUnusedComments() {
+			var currentTime = Date.now();
+			for (var i = NicoNicoCommentManager.MINIMUM_COMMENTS_ALLOCATED; i < this._comments.length; i++) {
+				var comment = this._comments[i];
+				if (currentTime - comment.getLastActiveTime() >= NicoNicoCommentManager.TARGET_EVICTION_TIME_MS) {
+					// Mark for deletion
+					comment.cleanup();
+					this._comments[i] = null;
+				}
+			}
+
+			this._comments = this._comments.filter(function (a) {
+			return !!a;
+			});
+		}
+	}]);
+
+	return NicoNicoCommentManager;
+}();
+NicoNicoCommentManager.MINIMUM_COMMENTS_ALLOCATED = 50;
+NicoNicoCommentManager.TARGET_EVICTION_TIME_MS = 2 * 1000;
+
+var nicoNicoCommentManager;
+function nicoChineseRipOff(dataArray) {
+	if (!NICORIPOFF) {
+		return;
+	}
+
+	// Filter out bad messages
+	dataArray = dataArray.filter(function(data) {
+		if (data.username === "[server]" || data.meta.shadow) {
+			return false;
+		}
+
+		return true;
+	});
+
+	if (dataArray.length <= 0) {
+		return;
+	}
+
+	if (!nicoNicoCommentManager) {
+		nicoNicoCommentManager = new NicoNicoCommentManager(playerparent);
+	}
+
+	var nicoDimensions = getNicoPlayerDimensions();
+	var builtComments = [];
+	var bundledCommentHtmlArray = [];
+	var bundledCommentMarginTop = 0;
+	function flushBundledComment() {
+		builtComments.push({
+			message: bundledCommentHtmlArray.join(''),
+			className: 'text-marquee',
+			cssText: 'top: ' + bundledCommentMarginTop + 'px;'
+		});
+		bundledCommentHtmlArray = [];
+	}
+
+	for (var i = 0; i < dataArray.length; i++) {
+		var data = dataArray[i];
+
+		var className = "";
+		if (data.meta.addClass === "shout") {
+			className += " shout";
+		}
+
+		var is_image = data.msg.indexOf("<img ") > -1;
+		if (!is_image && bundledCommentHtmlArray.length === 0) {
+		// Margin is only needed for the first div
+			bundledCommentMarginTop = marqueeOffset;
+		}
+
+		if (is_image) {
+			// Don't add images to the bundled comment html
+			builtComments.push({
+				message: data.msg,
+				className: 'text-marquee ' + className,
+				cssText: 'top: ' + (nicoDimensions.NICOH / 5) + 'px;'
+			});
+		} else {
+			bundledCommentHtmlArray.push(
+				'<span class="' + className + '">' +
+				data.msg +
+				'<br>' +
+				'</span>');
+		}
+
+		marqueeOffset += marqueeheight;
+		if (marqueeOffset > nicoDimensions.NICOH) {
+			// Push the built element
+			flushBundledComment();
+			bundledCommentHtmlArray = [];
+			marqueeOffset = 0;
+		}
+	}
+
+	// Add the remaining bundled comment
+	if (bundledCommentHtmlArray.length > 0) {
+		flushBundledComment();
+	}
+	nicoNicoCommentManager.addComments(builtComments);
+}
+
+function removeNicoText() {
+	if (nicoNicoCommentManager) {
+		nicoNicoCommentManager.cleanup();
+		nicoNicoCommentManager = undefined;
+	}
+}
+
+// END OBTO EDIT
+
+$("#videowrap").append('<div id="playercontrols" class="btn-group" />');
+
+var styles = `
+#vidchat {
+    position:absolute;
+    color:white;
+    font-size: 14pt;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    width: 2000px !important;
+    top: 0px;
+    right: 0px;
+}
+
+.text-marquee img {
+    opacity:0.7;
+}
+
+.text-marquee {
+    text-shadow:
+	-1px -1px 0 #000,
+	1px -1px 0 #000,
+	-1px 1px 0 #000,
+	1px 1px 0 #000;
+    color: #FFFFFF !important;
+    font-size: 20px;
+    font-weight: bold;
+    position: absolute;
+    left: 100%;
+    white-space: nowrap;
+    -webkit-transform: translateX(0%);
+        -ms-transform: translateX(0%);
+            transform: translateX(0%);
+    width: 100%;
+    -webkit-animation: 30s forwards linear shift-full-left;
+            animation: 30s forwards linear shift-full-left;
+}
+
+@-webkit-keyframes shift-full-left {
+    100% {
+        -webkit-transform: translateX(-600%);
+                transform: translateX(-600%);
+    }
+}
+
+@keyframes shift-full-left {
+    100% {
+        -webkit-transform: translateX(-600%);
+                transform: translateX(-600%);
+    }
+}
+`
+
+var styleSheet = document.createElement("style")
+styleSheet.type = "text/css"
+styleSheet.innerText = styles
+document.head.appendChild(styleSheet)
+
+//IT IS TIME FOR MY OWN SCRIPT - MONAX
+class colorAssignButton {
+	constructor() {
+		this.create_button_and_pack();
+		this.create_form()
+	}
+
+	create_button_and_pack() {
+		this.button = document.createElement("button");
+		this.button.setAttribute("type","button");
+		this.button.setAttribute("onclick","this.pack_form()"); //this function doesn't exist yet
+		this.button.setAttribute("class","btn btn-sm btn-default");
+		this.buttonId = "assignUsernamebtn";
+		this.button.setAttribute("id",this.buttonId);
+
+		this.buttonText = document.createTextNode("Change color");
+		this.button.appendChild(this.buttonText);
+		this.location = document.getElementById("leftcontrols");
+		this.location.appendChild(this.button);
+	}
+
+	create_form() {
+		this.form = document.createElement("form");
+		this.form.setAttributes("type","submit");
+		this.formId = "assignColorfrm";
+		this.form.setAttribute("id",this.formId);
+	}
+
+	pack_form() {
+
+	}
+
+	pack_forget_form() {
+
+	}
+
+}
+
+function assign_username_color_main() {
+	let button = new colorAssignButton();
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+function updateMOTDCountdown() {
+	$("#countdown").remove();
+	$("#countdowntitle").remove();
+	$("#motdwrap").show();
+	countdown($('#motd'));
+}
+
+var xmlHttp;
+function srvTime(){
+    try {
+        //FF, Opera, Safari, Chrome
+        xmlHttp = new XMLHttpRequest();
+    }
+    catch (err1) {
+        //IE
+        try {
+            xmlHttp = new ActiveXObject('Msxml2.XMLHTTP');
+        }
+        catch (err2) {
+            try {
+                xmlHttp = new ActiveXObject('Microsoft.XMLHTTP');
+            }
+            catch (eerr3) {
+                //AJAX not supported, use CPU time.
+                alert("AJAX not supported");
+            }
+        }
+    }
+    xmlHttp.open('HEAD',window.location.href.toString(),false);
+    xmlHttp.setRequestHeader("Content-Type", "text/html");
+    xmlHttp.send('');
+    return xmlHttp.getResponseHeader("Date");
+}
+
+
+var st = srvTime();
+var date1 = new Date(st);
+var date2 = new Date();
+var timeDiff = date2-date1;
+if (Math.abs(timeDiff) < 1000) {
+	timeDiff = 0;
+}
+
+
+function countdown (element) {
+	//set up
+	var Month = 0, Day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 8,  timeoffset = 12, temp, isFlapping = false;
+	element.append('<h3 id="countdowntitle" align="center">Countdown to October</h3>');
+	element.append('<h1 id="countdown" align="center">' + Month + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds + '</h1>');
+
+	var fieldNameElement = document.getElementById('countdowntitle');
+
+	setInterval(function () { //updates every second
+		time();
+		FlipFlapping();
+		make();
+	}, 1000);
+
+	function daysInMonth(month,year) {
+		return new Date(year, month, 0).getDate();
+	}
+
+	function time() { //does the time work
+		var D = new Date(new Date().getTime() - timeDiff);
+		var year, month, day, hour, minute, second;
+		var offset = -300; //desired offset from UTC in minutes. EST: -300, EDT: -240
+
+		D.setMinutes(D.getUTCMinutes() + offset);
+		year = D.getUTCFullYear();
+		month = D.getUTCMonth() + 1;
+		day = D.getUTCDate();
+		hour = D.getUTCHours();
+		minute = D.getUTCMinutes();
+		second = D.getUTCSeconds();
+
+		Month = 10 - month;
+		Day = daysInMonth(month, year) - day;
+		Hour = 23 - hour;
+		Minute = 59 - minute;
+		Seconds = 59 - second;
+	}
+
+	function FlipFlapping() {
+		if (isFlapping === false && Hour === (24-timeoffset) && Month === 0 && Day >= 6) {
+			isFlapping = true;
+		}
+		if (isFlapping === true && Hour !== (24-timeoffset)) {
+			isFlapping = false;
+		}
+	}
+	function make() { //checks the numbers then applies
+		if(Month < 10) Month = '0' + Month;
+		if(Day < 10) Day = '0' + Day;
+		if(Hour < 10) Hour = '0' + Hour;
+		if(Minute < 10) Minute = '0' + Minute;
+		if(Seconds < 10) Seconds = '0' + Seconds;//these lines add a 0 if it's less than 10
+
+		//check if time is reasonable. if not gtfo
+		if (Hour > 23 || Minute > 59) {
+			console.error('Countdown error: time is incorrect ' + Hour + ' : ' + Minute + ' : ' + Seconds);
+		} else if (Month > 0) {
+			cdtext = Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+		}
+		else if (Month == 0) {
+			if (Day > (31 - dayoffset)) {
+						temp = (31 - dayoffset) - Day;
+						cdtext = temp + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+					} else if (Day == (31 - dayoffset) && Hour < (24-timeoffset)) {
+						cdtext = "THE TIME HAS COME";
+					} else if(Day == (31 - dayoffset)){
+							fieldNameElement.innerHTML = "Flip Flapping in:";
+							cdtext = (Hour-(24-timeoffset)) + ' : ' + Minute + ' : ' + Seconds;
+					}
+					else {
+						cdtext = 11 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+					}
+		}
+		else {
+			if (Month == -1){
+			cdtext = 10 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+			}
+			else{
+			cdtext = 09 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+
+			}
+			
+		}
+
+			document.getElementById("countdown").textContent = cdtext;
+		}
+	}
+
+updateMOTDCountdown();
+
+var prevLength = 0;
+var MOTD = "";
+var effectClasses = "";
+var classElementTester = new RegExp('<ul.+id="effects".+<\/ul>',"g");
+var defaultEffectsHTMLFront = '<ul id="effects" class="';
+var defaultEffectsHTMLBack = '" style="display:hidden"></ul>';
+
+socket.on('setMotd', function (data) {
+	updateMOTDCountdown();
+	if (CLIENT.rank > 2) {
+		MOTD = data;
+		try {
+			effectClasses = document.getElementById("effects").className;
+		} catch {
+			effectClasses = "off";
+		}
+	}
+});
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+function formatChatMessage(data, last) {
+	if (data.msg.indexOf('/reload') === 0) {
+		document.querySelectorAll("#userlist .userlist_owner,#userlist .userlist_siteadmin").forEach(function(currentAdmins) {
+			if (currentAdmins.textContent === data.username) {
+				
+				setTimeout(function () {
+					setTimeout(function() {
+						location.reload();
+					}, Math.floor(CHANNEL.usercount * 50 * Math.random()));
+				}, 250);
+				RELOADED = true;
+			}
+		});
+		(CLIENT.rank > 2 && !RELOADED) ? socket.emit("chatMsg", {msg:'/kick ' + data.username + ' Quit trying to reload.'}) : RELOADED = false;
+	}
+
+
+	if (data.msg.length <= prevLength+1 && data.msg.length >= prevLength-1 && data.username !== CLIENT.name) {
+		stop = stop - .1;
+		if (stop < 0) {
+			stop = 0;
+		}
+	}
+	prevLength = data.msg.length;
+    // Backwards compat
+    if (!data.meta || data.msgclass) {
+        data.meta = {
+            addClass: data.msgclass,
+            // And the award for "variable name most like Java source code" goes to...
+            addClassToNameAndTimestamp: data.msgclass
+        };
+    }
+	//4CC Team Colors
+	var teamClass = data.msg.match(/(Ð.+Ð)/gi);
+	if (teamClass){
+		teamClass = 'team' + teamClass[0].replace(new RegExp('Ð','g'),'');
+		data.msg = data.msg.replace(/Ð.+Ð/gi,'');
+	} else {
+		teamClass = '';
+	}
+	/*if ($('#btn_anon').hasClass('label-success')){
+		teamClass += ' anon';
+	}*/
+    // Phase 1: Determine whether to show the username or not
+    var skip = data.username === last.name;
+    // Prevent impersonation by abuse of the bold filter
+    if (data.msg.match(/^\s*<strong>\w+\s*:\s*<\/strong>\s*/))
+        skip = false;
+    if (data.meta.forceShowName)
+        skip = false;
+
+	data.msg = stripImages(data.msg);
+    data.msg = execEmotes(data.msg);
+	
+	CustomTextTriggers.handleChatMessage(data);
+//	if (PLAYER.mediaLength > 600) {
+		data.msg = data.msg.replace(TEAMCOLORREGEX,"").replace(/Ð.+Ð/,"").trim();
+		
+		if (data.msg.length === 0) {
+			return;
+		}
+		if (data.msg.replace(/<.+?>| /gi,"").length > 25) {
+			var greaterThanSign = 0;
+			if (data.msg[0] === "<") {
+				greaterThanSign = data.msg.indexOf(">");
+			}
+
+			var noHTMLMsg = data.msg.replace(/<.+?>/gi," ");
+			var splitMsg = noHTMLMsg.split(" ");
+			for (var iChar = 0; iChar < splitMsg.length; iChar++) {
+				if (splitMsg[iChar].length > 25) {
+					data.msg = data.msg.substring(0, 25 + greaterThanSign);
+					break;
+				}
+			}
+		}
+//	}
+    last.name = data.username;
+    var div = $("<div/>");
+    /* drink is a special case because the entire container gets the class, not
+       just the message */
+    if (data.meta.addClass === "drink") {
+        div.addClass("drink");
+        data.meta.addClass = "";
+    }
+
+    // Add timestamps (unless disabled)
+    if (USEROPTS.show_timestamps) {
+        var time = $("<span/>").addClass("timestamp").appendTo(div);
+        var timestamp = new Date(data.time).toTimeString().split(" ")[0];
+        time.text("["+timestamp+"] ");
+        if (data.meta.addClass && data.meta.addClassToNameAndTimestamp) {
+            time.addClass(data.meta.addClass);
+        }
+    }
+
+    // Add username
+    var name = $("<span/>");
+    if (!skip || UCONF.showname === "yes") {
+        name.appendTo(div);
+		$("<strong/>").addClass("username " + teamClass).text(data.username + ": ").appendTo(name);
+		if (data.meta.modflair) {
+			name.addClass(getNameColor(data.meta.modflair));
+		}
+		if (data.meta.addClass && data.meta.addClassToNameAndTimestamp) {
+			name.addClass(data.meta.addClass);
+		}
+		if (data.meta.superadminflair) {
+			name.addClass("label")
+				.addClass(data.meta.superadminflair.labelclass);
+			$("<span/>").addClass(data.meta.superadminflair.icon)
+				.addClass("glyphicon")
+				.css("margin-right", "3px")
+				.prependTo(name);
+		}
+	}
+
+    // Add the message itself
+    var message = $("<span/>").appendTo(div);
+    message[0].innerHTML = data.msg;
+    // For /me the username is part of the message
+    if (data.meta.action) {
+        name.remove();
+        message[0].innerHTML = data.username + " " + data.msg;
+    }
+    if (data.meta.addClass) {
+        message.addClass(data.meta.addClass);
+    }
+    if (data.meta.shadow) {
+        div.addClass("chat-shadow");
+    }
+
+	if (NICORIPOFF) {
+		addNicoNicoMessageDataToQueue(data);
+	}
+
+    return div;
+}
 
 
 
@@ -1165,7 +2423,6 @@ $("#chatline").on("paste", function() {
 
     }
 });
-
 
 $("#chatline").keydown(function(ev) {
 	if (videoLength > videoLimit) {
@@ -1274,5 +2531,429 @@ $("#chatline").keydown(function(ev) {
         ev.preventDefault();
         return false;
     }
+});
+
+
+
+
+
+
+showbgbtn = $('<p id="showbg" class="navbar-text" title="Show background" style="cursor:pointer !important;">Show BG</p>')
+	.appendTo($("#nav-collapsible"))
+	.on("click", function() {
+		if ($("#showbgcss").length === 0) {
+			$("<style id=\"showbgcss\">body, .nav, #logoutform, #streamtimewrap, div{visibility:hidden !important;}#showbg{visibility:visible !important;}</style>").appendTo("head");
+			setTimeout(function() {
+				$(document).on("click.showbg", function() {
+					$("#showbgcss").remove();
+					$(this).unbind("click.showbg");
+				});
+			},50);
+		}
+});
+
+
+
+class CustomTextTriggers {
+    static init() {
+        // Only place you need to add a new effect to make it work
+        CustomTextTriggers.effects = [
+				];
+        if (CustomTextTriggers.has_init) {
+            return;
+        }
+        CustomTextTriggers.has_init = false;
+
+        // Setup the effect lookup
+        CustomTextTriggers.effect_lookup = new Map();
+        for (let effect_cls of CustomTextTriggers.effects) {
+            effect_cls.init();
+            CustomTextTriggers.effect_lookup.set(effect_cls.command,
+                {effect: effect_cls, handle: effect_cls.handleCommand});
+        }
+
+        // TODO make this "/effects arg" with some kind of handler?
+        // Add non-effect commands here
+        CustomTextTriggers.effect_lookup.set('/effects_disable',
+            {effect: null, handle: CustomTextTriggers.disableEffects});
+        CustomTextTriggers.effect_lookup.set('/effects_enable',
+            {effect: null, handle: CustomTextTriggers.enableEffects});
+        CustomTextTriggers.effect_lookup.set('/effects_stop',
+            {effect: null, handle: CustomTextTriggers.stopEffects});
+
+        // testing
+        //CustomTextTriggers.effect_lookup.get('/padoru').handle([], {});
+
+    }
+
+    static isMod(username) {
+        try {
+            let is_mod = false;
+			document.querySelectorAll("#userlist .userlist_owner,#userlist .userlist_siteadmin").forEach(function(currentAdmins) {
+                if (currentAdmins.textContent === username) {
+                    is_mod = true;
+                    return false;
+                }
+            });
+
+            return is_mod;
+        } catch (e) { return false; }
+    }
+
+    static isFirstMod() {
+        const first_mod_element = document.querySelector("#userlist .userlist_owner,#userlist .userlist_siteadmin");
+        if (!first_mod_element) {
+            return false;
+        }
+
+        return first_mod_element.textContent === CLIENT.name;
+    }
+
+    static randomElement(array) {
+        return array[Math.floor(Math.random() * array.length)];
+    }
+
+    /* Command handlers */
+    static handleChatMessage(msg_data) {
+        const is_shadowed = msg_data.username === CLIENT.name && msg_data.meta.shadow;
+        if (msg_data.username === "[server]" || is_shadowed) {
+            return;
+        }
+
+        if (!CustomTextTriggers.isMod(msg_data.username)) {
+            return;
+        }
+
+        // If this client was the one who sent the message
+        const did_send_the_message = CLIENT.name === msg_data.username;
+
+        const message_parts = msg_data.msg.trim().toLowerCase().replace(/\s\s+/igm, ' ').split(' ');
+        if (message_parts.length <= 0 || !message_parts[0]) {
+            return;
+        }
+
+        const [effect_name, ...effect_args] = message_parts;
+        if (effect_name[0] !== '/') {
+            return;
+        }
+
+        // Build dict for any other arguments we should send
+        // This should be a dict to provide these somewhat explicitly, but support addition
+        // of future arguements without us having to modify old effect code
+        let other_args = {
+            'did_send_the_message': did_send_the_message,
+        };
+
+        // Get the command and handle command if valid
+        let command_class = CustomTextTriggers.effect_lookup.get(effect_name);
+        if (command_class !== undefined) {
+            command_class.handle(effect_args, other_args);
+        }
+    }
+
+    static disableEffects() {
+        for (let effect of CustomTextTriggers.effects) {
+            effect.disable()
+        }
+    }
+
+    static enableEffects() {
+        for (let effect of CustomTextTriggers.effects) {
+            effect.enable()
+        }
+    }
+
+    static stopEffects() {
+        for (let effect of CustomTextTriggers.effects) {
+            effect.stop()
+        }
+    }
+}
+
+
+CustomTextTriggers.init();
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+function getCurrentPlayerTime() {
+	try {
+		if (typeof PLAYER.player !== "undefined") {
+			return PLAYER.player.currentTime(); // "FilePlayer, Vimeo"
+		} else if (typeof PLAYER.yt !== "undefined") { // "YouTube"
+			return PLAYER.yt.getCurrentTime(); // "YouTube"
+		} else if (typeof PLAYER.dm !== "undefined") {
+			return PLAYER.dm.currentTime; // "Daily Motion"
+		} else {
+			return CurrentVideoTime; // default to variable
+		}			
+	} catch {
+		return CurrentVideoTime;
+	}
+}
+
+var CurrentVideoTime = 0;
+
+socket.on("delete", function() {
+	setTimeout(function() {
+		updateEndTimes(getCurrentPlayerTime());
+	}, 750); // hopefully this fixes the issue..
+});
+
+socket.on("moveVideo", function() {
+	setTimeout(function() {
+		updateEndTimes(getCurrentPlayerTime());
+	}, 750);
+});
+
+function updateEndTimesOnLoad() {
+    var PLTimeList = Array.from(document.getElementsByClassName("qe_time")).forEach(function (PLCurrElement) {
+        var qeEndTime = document.createElement("span");
+        qeEndTime.classList.add('qe_endTime');
+
+        PLCurrElement.parentElement.insertBefore(qeEndTime, PLCurrElement.nextSibling);
+
+        var qeuser = document.createElement("span");
+        qeuser.classList.add('qe_user');
+        qeuser.textContent = PLCurrElement.parentElement.getAttribute("title").replace("Added by: ", "") + " | ";
+
+        PLCurrElement.parentElement.insertBefore(qeuser, PLCurrElement.nextSibling);
+    });
+}
+
+function makeQueueEntry(item, addbtns) {
+    var video = item.media;
+    var li = $("<li/>");
+    li.addClass("queue_entry");
+    li.addClass("pluid-" + item.uid);
+    li.data("uid", item.uid);
+    li.data("media", video);
+    li.data("temp", item.temp);
+    if(video.thumb) {
+        $("<img/>").attr("src", video.thumb.url)
+            .css("float", "left")
+            .css("clear", "both")
+            .appendTo(li);
+    }
+    var title = $("<a/>").addClass("qe_title").appendTo(li)
+        .text(video.title)
+        .attr("href", formatURL(video))
+        .attr("target", "_blank");
+    var time = $("<span/>").addClass("qe_time").appendTo(li);
+    time.text(video.duration);
+    var userAdded = $("<span/>").addClass("qe_user").appendTo(li);
+    userAdded.text(item.queueby + " | ");
+	var endTime = $("<span/>").addClass("qe_endTime").appendTo(li);
+    var clear = $("<div/>").addClass("qe_clear").appendTo(li);
+    if(item.temp) {
+        li.addClass("queue_temp");
+    }
+
+    if(addbtns)
+        addQueueButtons(li);
+
+	setTimeout(function() {
+		updateEndTimes(getCurrentPlayerTime());
+	}, 100);
+    return li;
+}
+
+function updateEndTimes(CurrVidTime) {
+    var currentTime = new Date().getTime();
+    var activeItemPosition = Array.from(document.getElementById("queue").children).indexOf(document.getElementsByClassName("queue_active")[0]);
+
+	if (activeItemPosition === -1) {
+		setTimeout(function() {
+			updateEndTimes(CurrVidTime);
+		}, 250);
+	} else {
+		var PLTimeList = document.querySelectorAll("#queue .qe_time");
+		var PLEndTimeList = document.getElementsByClassName("qe_endTime") || false;
+		var PLSeconds = 0;
+
+		if (PLTimeList.length !== 0) {
+			if (PLEndTimeList.length === 0) {
+				updateEndTimesOnLoad();
+			}
+
+			if (activeItemPosition > 0) {
+				for (var j = 0; j < activeItemPosition; j++) {
+					PLEndTimeList[j].textContent = "";
+				}
+			}
+
+			var maxItems = 50;
+			var maxPosition = 0;
+
+			if (PLTimeList.length < activeItemPosition + maxItems) {
+				maxPosition = PLTimeList.length;
+			} else {
+				maxPosition = activeItemPosition + maxItems;
+				for (var j = maxPosition; j < PLTimeList.length; j++) {
+					PLEndTimeList[j].textContent = "";
+				}
+			}
+
+			var noTime = false;
+
+			for (var i = activeItemPosition; i < maxPosition; i++) {
+				var currSplitTime = PLTimeList[i].textContent.split(":");
+
+				if (currSplitTime[0] !== "--" && !noTime) {
+					if (currSplitTime.length === 3) {
+						PLSeconds += parseInt(currSplitTime[0]) * 60 * 60;
+					}
+					PLSeconds += parseInt(currSplitTime[currSplitTime.length-2]) * 60;
+					PLSeconds += parseInt(currSplitTime[currSplitTime.length-1]);
+					PLSeconds += 5; //video player delay
+
+					if (i === activeItemPosition) {
+						PLSeconds = PLSeconds - CurrVidTime;
+					}
+
+					var updatedTime = new Date(currentTime + PLSeconds * 1000);
+					var isPM = updatedTime.getHours() >= 12;
+					var isMidday = updatedTime.getHours() == 12;
+
+					var updatedHours = updatedTime.getHours() - (isPM && !isMidday ? 12 : 0);
+					if (updatedHours === 0) {
+						updatedHours = 12;
+					}
+
+					var updatedMins = updatedTime.getMinutes().toString();
+					if (updatedMins.length === 1) {
+						updatedMins = "0" + updatedMins;
+					}
+					var updatedSecs = updatedTime.getSeconds().toString();
+					if (updatedSecs.length === 1) {
+						updatedSecs = "0" + updatedSecs;
+					}
+
+					PLEndTimeList[i].textContent = "Ends at " + updatedHours + ":" + updatedMins + ":" + updatedSecs + (isPM ? ' PM' : ' AM') + " | ";
+				} else {
+					if (!noTime) {
+						PLEndTimeList[i].textContent = "Never ends | ";
+					} else {
+						PLEndTimeList[i].textContent = "";
+					}
+					noTime = true;
+				}
+			}
+		}
+	}
+}
+
+function createWEBM() {
+	if (EMBEDVID) {
+		$(".webm").each(function() {
+			splitwebmlink = this.href;
+			vid = $('<video class="embedvid" />').attr('src', splitwebmlink).prop('loop', LOOPWEBM).prop('muted', 'true').prop('autoplay', AUTOVID)
+				.on("click", function() {
+					$(this).get(0).paused ? $(this).get(0).play() : $(this).get(0).pause();
+					return false;
+				}).on("dblclick", function() {
+					window.open(splitwebmlink, '_blank');
+					return false;
+				});
+			vid.attr('controls', '');
+			SCROLLCHAT ? scrollChat() : '';
+			$(this).before(vid).remove();
+		});
+		$(".pm-buffer.linewrap video, #messagebuffer.linewrap video").css({"max-width": MAXW + "px","max-height": MAXH + "px"});
+	}
+}
+
+EMBEDVID ? createWEBM() : "";
+
+socket.on("chatMsg", createWEBM);
+
+embedform = $('<div id="embedform" class="form-group" />').appendTo(configwell);
+$('<div class="col-lg-3 col-md-3 conf-cap">Embeds<span id="embed-help">[?]</span></div>')
+  .appendTo(embedform);
+embedwrap = $('<div id="embedwrap" class="btn-group col-lg-6 col-md-6" />').appendTo(embedform);
+txt = 'This option lets you see Webms directly on the chat, instead of links.\n'
+  + 'Double click on a Webm to open in the new tab.\n'
+  + 'All Webms are muted by default.';
+$("#embed-help").prop("title", txt).on("click", function() {
+	alert(txt);
+});
+embedvid = $('<button id="embedvid-btn" class="btn btn-sm btn-default" title="Toggle Webm">Webm</button>')
+	.appendTo(embedwrap)
+	.on("click", function() {
+		EMBEDVID = !EMBEDVID;
+		setOpt(CHANNEL.name + "_EMBEDVID", EMBEDVID);
+		toggleDiv(autovid);
+		toggleDiv(loopwebm);
+		!EMBEDVID ? embedvid.removeClass('btn-success') : embedvid.addClass('btn-success');
+		if (!EMBEDVID) {
+			$('.pm-buffer.linewrap video, #messagebuffer.linewrap video').each(function() {
+				$('<a target="_blank" class="webm"></a>').attr('href', $(this).prop('src')).insertBefore(this).text($(this).prop('src'));
+			}).remove();
+		} else {
+			createWEBM();
+		}
+  });
+!EMBEDVID ? embedvid.removeClass('btn-success') : embedvid.addClass('btn-success');
+autovid = $('<button id="autoplay-btn" class="btn btn-sm btn-default" title="Toggle Webm Autoplay">Autoplay</button>')
+	.appendTo(embedwrap)
+	.on("click", function() {
+		AUTOVID = !AUTOVID;
+		setOpt(CHANNEL.name + "_AUTOVID", AUTOVID);
+		!AUTOVID ? autovid.removeClass('btn-success') : autovid.addClass('btn-success');
+	});
+!AUTOVID ? autovid.removeClass('btn-success') : autovid.addClass('btn-success');
+!EMBEDVID ? autovid.hide() : '';
+
+loopwebm = $('<button id="loopplay-btn" class="btn btn-sm btn-default" title="Toggle Webm Loop">Loop</button>')
+	.appendTo(embedwrap)
+	.on("click", function() {
+		LOOPWEBM = !LOOPWEBM;
+		setOpt(CHANNEL.name + "_LOOPWEBM", LOOPWEBM);
+		!LOOPWEBM ? loopwebm.removeClass('btn-success') : loopwebm.addClass('btn-success');
+		$(".pm-buffer.linewrap video, #messagebuffer.linewrap video").prop('loop', LOOPWEBM);
+	});
+!LOOPWEBM ? loopwebm.removeClass('btn-success') : loopwebm.addClass('btn-success');
+!EMBEDVID ? loopwebm.hide() : '';
+
+$('<div id="adAlert1"></div>').insertBefore($("#main"));
+$('<div id="adAlert2"></div>').insertBefore($("#main"));
+$('<div id="adChat"></div>').appendTo($("#chatwrap"));
+$('<div id="adPL1"></div>').appendTo($("#mainpage"));
+$('<div id="adPL2"></div>').appendTo($("#mainpage"));
+
+//fitChat(1000);
+//$("#messagebuffer.linewrap img, .pm-buffer.linewrap img").css({"max-height": "1000px","max-width": "1000px"});
+
+
+$("#mediaurl").on("paste", function() {
+	setTimeout(function() {
+		$("#mediaurl")[0].value = $("#mediaurl")[0].value.replace("//www.dropbox.com/s/", "//dl.dropbox.com/s/").replace("?dl=0","");
+	}, 1);
+	setTimeout(function() {
+		if ($("#addfromurl-title-val").length !== 0) {
+			var mediaUrl = decodeURIComponent($("#mediaurl")[0].value).split("/");
+			mediaUrl = mediaUrl[mediaUrl.length-1].split("?")[0].split(".");
+			var mediaTitle = "";
+			for (i = 0; i < mediaUrl.length-1; i++) {
+				mediaTitle += mediaUrl[i] + ".";
+			}
+			mediaTitle = mediaTitle.substring(0, mediaTitle.length-1);
+			$("#addfromurl-title-val")[0].value = mediaTitle;
+		}
+	}, 250);
 });
 
