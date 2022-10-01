@@ -1030,14 +1030,34 @@ function makeChatPanel() {
 			}
 			turnOffBtn();
 		});
-
+// maybe
+	$("#chatfunc-dropdown").append('<div id="imgsize">Adjust image/webm size</div>');
+	imgsizediv = $("<div/>").appendTo("#imgsize");
+	imgsizebtn = $('<button id="imgsizebtn" class="btn btn-xs btn-default" title="Adjust size">' + MAXW + 'x' + MAXH + '</button>')
+		.appendTo(imgsizediv)
+		.on("click", function() {
+			var tempvar = $("#chatline").val();
+			var tempvar2 = tempvar.split(" ");
+			if (tempvar2[0] > 0 && tempvar2[1] > 0) {
+				MAXW = tempvar2[0];
+				setOpt(CHANNEL.name + "_MAXW", MAXW);
+				MAXH = tempvar2[1];
+				setOpt(CHANNEL.name + "_MAXH", MAXH);
+				$(".pm-buffer.linewrap img, .pm-buffer.linewrap video, #messagebuffer.linewrap img, #messagebuffer.linewrap video").css({"max-width": MAXW + "px","max-height": MAXH + "px"});
+				$("#chatline").val("");
+				$(this).text(MAXW + 'x' + MAXH);
+			} else {
+				alert("Invalid input. Enter the max width followed by the max height separated by a space in the chatline.\nEx. \"400 200\"");
+			}
+	});
+// maybe
 	_chatBuffer = addChatMessage;
 	addChatMessage = function(data) {
 		_chatBuffer(data);
 		$("#messagebuffer.linewrap img").css({"max-height": MAXH + "px","max-width": MAXW + "px"});
 	}
 }
-$("#messagebuffer.linewrap img").css({"max-height": MAXH + "px","max-width": MAXW + "px"});
+//$("#messagebuffer.linewrap img").css({"max-height": MAXH + "px","max-width": MAXW + "px"});
 
 makeChatPanel();
 chatfunc = $("#chatfunc-dropdown").detach();
