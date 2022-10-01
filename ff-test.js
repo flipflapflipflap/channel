@@ -779,152 +779,198 @@ function toggleMinLayout() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// adding important hidden reference row
+zerorow = $('<div id="zerorow" class="row" />').insertBefore("#motdrow");
 
+// adding top logo row
+azukirow = $('<div id="azukirow" class="row" />').insertBefore(zerorow);
 
-function setPanelProperties(div) {
-	height = $("#userlist").height();
-	width = $("#userlist").width();
-	$(div).css({'background-color':'black', 'height':height + 2 + 'px', 'width':width + 'px'});
-}
+// adding video wrap if user has enabled "Hide Player" option
+if (USEROPTS.hidevid) {
+	$("#chatwrap, #chatline").removeClass('col-lg-12 col-md-12').addClass('col-lg-5 col-md-5');
+	videowrap = $('<div id="videowrap" class="col-lg-7 col-md-7" />')
+		.insertBefore("#chatwrap");
+	currenttitle = $('<p id="currenttitle" />')
+		.html('Currently Playing: ' + $(".queue_active a").html())
+		.appendTo(videowrap);
+	ytapiplayer = $('<div id="ytapiplayer" />')
+		.appendTo(videowrap);
 
-function antiAFKfunction() {
-	$(".userlist_item").each(function() {
-		var ulthis = $(this);
-		if (ulthis.children().eq(1).text() === CLIENT.name && ulthis.hasClass("userlist_afk")) {
-			socket.emit("chatMsg", {msg: '/afk'});
-			return;
-		}
-	});
-}
+	html = 'According to your User Preferences, video player is hidden. '
+		+ 'Click a button below to continue hiding player. '
+		+ 'Click default "Reload" icon to show player in this session. '
+		+ 'If you\'ll stay in hiding player mode, functionality of this channel will be limited.<br /><br />';
+	makeAlert("No Player", html).appendTo(ytapiplayer);
+	$("#ytapiplayer .alert").css({'text-align':'left', 'margin':'0px -15px'});
 
-function turnOffBtn() {
-	turnoffbtn = true;
-	$("#chatfunc-dropdown").find('button').each(function() {
-		$(this).hasClass("btn-danger") ? turnoffbtn = false : '';
-	});
-	turnoffbtn ? $("#chatflair").removeClass("label-success").addClass("label-default") : $("#chatflair").removeClass("label-default").addClass("label-success");
-}
-
-function makeChatPanel() {
-	$("#userlist").append('<div id="chatfunc-dropdown" />');
-	$("#chatfunc-dropdown").append('<div id="spamclear">Auto clear chat</div>');
-	spamcleardiv = $("<div/>").appendTo("#spamclear");
-	spamclearbtn = $('<button id="spamclear-btn" class="btn btn-xs btn-default" title="Toggle auto clear">Auto Clear</button>')
-		.appendTo(spamcleardiv)
+	staybtn = $('<button id="stay-btn" class="btn btn-default btn-sm">Stay In "Chat Only" Mode</button>')
+		.appendTo("#ytapiplayer .alert")
 		.on("click", function() {
-			if (!CLEARING) {
-				$(this).text('Stop Clearing').addClass('btn-danger');
-				CLEARING = setInterval(function() {
-					socket.emit("chatMsg", {msg: '/clear'});
-				}, 500);
-			} else {
-				$(this).text('Auto Clear').removeClass('btn-danger');
-				clearInterval(CLEARING);
-				CLEARING = false;
-			}
-			turnOffBtn();
+			videowrap.remove();
+			$("#chatwrap").removeClass().addClass('col-lg-12 col-md-12');
+			$("#configform, #modeform").hide();
+			fitChat("auto");
 		});
-
-	$("#chatfunc-dropdown").append('<div id="antiafk">Never go AFK</div>');
-	antiafkdiv = $("<div/>").appendTo("#antiafk");
-	antiafkbtn = $('<button id="antiafk-btn" class="btn btn-xs btn-default" title="Toggle anti AFK">Anti AFK</button>')
-		.appendTo(antiafkdiv)
-		.on("click", function() {
-			if (!ANTIAFK) {
-				antiAFKfunction();
-				$(this).addClass('btn-danger');
-				ANTIAFK = socket.on("setAFK", antiAFKfunction);
-			} else {
-				$(this).removeClass('btn-danger');
-				socket.removeListener("setAFK", antiAFKfunction);
-				ANTIAFK = false;
-			}
-			turnOffBtn();
-		});
-
-	$("#chatfunc-dropdown").append('<div id="imgsize">Adjust image/webm size</div>');
-	imgsizediv = $("<div/>").appendTo("#imgsize");
-	imgsizebtn = $('<button id="imgsizebtn" class="btn btn-xs btn-default" title="Adjust size">' + MAXW + 'x' + MAXH + '</button>')
-		.appendTo(imgsizediv)
-		.on("click", function() {
-			var tempvar = $("#chatline").val();
-			var tempvar2 = tempvar.split(" ");
-			if (tempvar2[0] > 0 && tempvar2[1] > 0) {
-				MAXW = tempvar2[0];
-				setOpt(CHANNEL.name + "_MAXW", MAXW);
-				MAXH = tempvar2[1];
-				setOpt(CHANNEL.name + "_MAXH", MAXH);
-				$(".pm-buffer.linewrap img, .pm-buffer.linewrap video, #messagebuffer.linewrap img, #messagebuffer.linewrap video").css({"max-width": MAXW + "px","max-height": MAXH + "px"});
-				$("#chatline").val("");
-				$(this).text(MAXW + 'x' + MAXH);
-			} else {
-				alert("Invalid input. Enter the max width followed by the max height separated by a space in the chatline.\nEx. \"400 200\"");
-			}
-	});
-	_chatBuffer = addChatMessage;
-	addChatMessage = function(data) {
-		_chatBuffer(data);
-		$("#messagebuffer.linewrap img").css({"max-height": MAXH + "px","max-width": MAXW + "px"});
-	}
 }
-$("#messagebuffer.linewrap img").css({"max-height": MAXH + "px","max-width": MAXW + "px"});
 
-makeChatPanel();
-chatfunc = $("#chatfunc-dropdown").detach();
+//Team Colour
+$('head').append('<script type="text/javascript" src="' + `${SCRIPT_FOLDER_URL}/ffteamcolor.js` + '">');
 
+// changing initial layout to compact
+$("body").addClass('fluid');
+compactLayout();
+toggleFluidLayout();
 
-chatflair = $('<span id="chatflair" class="label label-default pull-right pointer" title="Press F">F</span>')
-	.insertAfter("#modflair")
-	.on("click", function() {
-		!CHATFUNC ? chatfunc.appendTo($("#userlist")) : chatfunc.detach();
-		CHATFUNC = !CHATFUNC;
-		toggleClearBtn();
-		setPanelProperties("#chatfunc-dropdown");
+// adding "id" attributes
+$(".navbar-collapse .navbar-nav").children().first().attr('id', 'home-link');
+$("#home-link").next().attr('id', 'account-link');
+$("#account-link").next().attr('id', 'options-link');
+$("#options-link").next().attr('id', 'channelset-link');
+$("#channelset-link").next().attr('id', 'layout-link');
+
+// changing location of some layout elements
+$("#main").prepend($("#drinkbar").detach());
+$("#videowrap").append('<div id="playercontrols" class="btn-group" />');
+$("#playercontrols").append($("#mediarefresh").detach());
+$("#rightpane").prepend($("#videocontrols").detach());
+$("#rightpane").prepend($("#plcontrol").detach());
+$("#leftpane").prepend($("#newpollbtn,#emotelistbtn").detach());
+$("#plcontrol").prepend($("#showmediaurl").detach());
+
+// header and footer links open in a new tab
+$("#home-link a, #account-link ul a, .credit a").attr('target', '_blank');
+
+// adding favicon
+if (Favicon_URL!=="") {
+	$(document).ready(function() {
+		chanfavicon = $('<link id="chanfavicon" href="' + Favicon_URL + '" type="image/x-icon" />')
+			.attr('rel', 'shortcut icon')
+			.appendTo("head");
 	});
+}
 
+// adding important messages to "Options"
+text1='Please use "Personal theme" selector in the room configuration box to select a theme for this channel. ';
+text2='Please use "Click to configure" button in the room configuration box to configure this channel. ';
+text3='If you want to make global changes, please go to another channel.';
+$("#us-theme").hide();
+$("#us-theme").parent().append('<p class="text-danger">' + text1 + '' + text3 + '</p>');
+$("#us-layout").hide();
+$("#us-layout").parent().append('<p class="text-danger">' + text2 + '' + text3 + '</p>');
 
-autoscrollbtn = $('<span id="autoscrollbtn" class="label label-default pull-right pointer" title="Toggle to always scroll chat">S</span>')
-	.insertAfter("#modflair")
-	.on("click", function() {
-		if ($(this).hasClass("label-success")) {
-			$(this).removeClass("label-success").addClass("label-default");
-			socket.removeListener("chatMsg", scrollChat);
-		} else {
-			$(this).addClass("label-success").removeClass("label-default");
-			socket.on("chatMsg", scrollChat);
-		}
-	});
-
-
-// optional removing of "Home" menu from header
-$("#home-link").remove();
-
-$("#layout-link li:nth-child(2) a").on("click", function() {
-	$("#transformationform, #modeform").hide();
-	fitChat("auto");
+// fix layout after saving user options
+$("#useroptions .modal-footer button:nth-child(1)").on("click", function() {
+	USEROPTS.hidevid ? location.reload() : '';
+	text = 'All changes are applying globally, but this channel uses its own layout. '
+		+ 'Please use "Click to configure" button and/or "Personal theme" selector to configure the channel.<br />'
+		+ 'Reload player if the wrong title is displaying. '
+		+ 'In HD layout or if player is removed, you may not see some elements due to CyTube API. '
+		+ 'If so, reload channel.';
+	makeAlert("User Preferences change", text, "alert-info").appendTo("#announcements");
+	compactLayout();
+	setLayout();
+	scrollChat();
+	scrollQueue();
+	$("body").hasClass('fullscreen') ? fluidLayout() : '';
 });
 
-var _chatOnly = chatOnly;
-chatOnly = function () {
-	$("#currenttitle").css({"display":"inline","border-width":"0px"}).appendTo($("#chatheader"));
-	webmthing = $("<div/>").appendTo($('<div id="webmthing">Toggle webms</div>').appendTo(chatfunc));
-	embedvid.removeClass("btn-sm").addClass("btn-xs").appendTo(webmthing);
-	loopwebm.removeClass("btn-sm").addClass("btn-xs").appendTo(webmthing);
-	autovid.removeClass("btn-sm").addClass("btn-xs").appendTo(webmthing);
-	_chatOnly();
-	scrollChat();
-	if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-		$("#findtime,#currenttitle").remove();
-		$("span.label.label-default.pull-right.pointer").each(function() {
-			var btext = $(this).text();
-			if (btext.length > 1) {
-				$(this).text(btext.charAt(0));
-			}
-		});
-	}
-};
+// changing channel name
+ChannelName_Caption !== "" ? $(".navbar-brand").html(ChannelName_Caption) : '';
 
-var	vidRemoved = false;
+LINKS = setOpt(CHANNEL.name + "_LINKS", {});
+
+var rdmLinkInterval = false;
+var iRefreshes = 0;
+var videoElement = false;
+
+function clearAutoRefresh() {
+	clearInterval(rdmLinkInterval);
+	rdmLinkInterval = false;
+	iRefreshes = 0;
+}
+
+autorefreshbtn = $('<button id="autorefreshbtn" class="btn btn-sm ' + (!AUTOREFRESH ? 'btn-danger' : 'btn-default') + '" title="Toggle to auto refresh the player. Please note this is still experimental.">Auto Refresh ' + (!AUTOREFRESH ? 'OFF' : 'ON') + '</button>')
+	.appendTo("#playercontrols")
+	.on("click", function() {
+		AUTOREFRESH = !AUTOREFRESH;
+		setOpt(CHANNEL.name + "_AUTOREFRESH", AUTOREFRESH);
+		if (AUTOREFRESH) {
+			this.className = "btn btn-sm btn-default";
+			this.textContent = "Auto Refresh ON";
+		} else {
+			this.className = "btn btn-sm btn-danger";
+			this.textContent = "Auto Refresh OFF";
+			clearAutoRefresh();
+		}
+	});
+
+
+function autoRefreshPlayer(data) {
+	if (typeof data.type !== "undefined") {
+		if (AUTOREFRESH && data.type === "fi" && !vidRemoved) {
+			videoElement = document.getElementById("ytapiplayer_html5_api") || false;
+			clearAutoRefresh();
+
+			if (!rdmLinkInterval) {
+				rdmLinkInterval = setInterval(function() {
+					iRefreshes++;
+					videoElement = document.getElementById("ytapiplayer_html5_api") || false;
+					vidError = videoElement.error || false;
+
+					if (vidError) {
+						document.getElementById("mediarefresh").click();
+					} else if (iRefreshes > 15 || videoElement.readyState !== 0) {
+						clearAutoRefresh();
+					}
+				}, 2050 + Math.floor(700 * Math.random()));
+			}
+		}
+	}
+}
+
+_loadMediaPlayer = loadMediaPlayer;
+loadMediaPlayer = function(data) {
+	selectRandomLink(data);
+    _loadMediaPlayer(data);
+	autoRefreshPlayer(data);
+}
+
+_handleMediaUpdate = handleMediaUpdate;
+handleMediaUpdate = function(data) {
+	selectRandomLink(data);
+    _handleMediaUpdate(data);
+	autoRefreshPlayer(data);
+}
+
+const PlaylistDelimiter = "???streamurl???";
+
+function selectRandomLink(data) {
+	if (typeof data.id !== "undefined") {
+		if (data.type === "fi") {
+			if (data.id.indexOf(PlaylistDelimiter) > -1) {
+				LeaderLink = data.id;
+				var rdmLinks = data.id.split(PlaylistDelimiter);
+				data.id = rdmLinks[Math.floor(Math.random() * rdmLinks.length)];
+				setTimeout(function () {
+					PLAYER.mediaId = LeaderLink; // Media ID must match playlist link or else this does not let you set the time.
+				}, 1000);
+			}
+		}
+	}
+}
+
+setTimeout(document.getElementById("mediarefresh").click(), 500);
+
+
+//////////////
+//////////////
+// GOOD
+//////////////
+//////////////
+
+
+
+
 
 function removeVideo() {
 	removeNicoText();
