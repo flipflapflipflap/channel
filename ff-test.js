@@ -3104,4 +3104,3 @@ $("#mediaurl").on("paste", function() {
 		}
 	}, 250);
 });
-
