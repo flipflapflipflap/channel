@@ -2431,7 +2431,7 @@ function formatChatMessage(data, last) {
     if (data.meta.forceShowName)
         skip = false;
 
-	data.msg = stripImages(data.msg);
+	// data.msg = stripImages(data.msg);
     //data.msg = execEmotes(data.msg); // LOOK HERE
 	
 	CustomTextTriggers.handleChatMessage(data);
