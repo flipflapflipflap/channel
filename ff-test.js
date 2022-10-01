@@ -2432,7 +2432,7 @@ function formatChatMessage(data, last) {
         skip = false;
 
 	data.msg = stripImages(data.msg);
-    data.msg = execEmotes(data.msg);
+    //data.msg = execEmotes(data.msg); // LOOK HERE
 	
 	CustomTextTriggers.handleChatMessage(data);
 //	if (PLAYER.mediaLength > 600) {
@@ -3104,3 +3104,4 @@ $("#mediaurl").on("paste", function() {
 		}
 	}, 250);
 });
+
