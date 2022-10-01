@@ -2374,7 +2374,7 @@ function countdown (element) {
 						cdtext = 11 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 					} else if (day == (dayoffset) && hour > (18)) {
 						cdtext = "THE TIME HAS COME";
-					} else(day < dayoffset){
+					} else {
 							temp = dayoffset - day;
 							temp = '0' + temp;
 							fieldNameElement.innerHTML = "Flip Flapping in:";
