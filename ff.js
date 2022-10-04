@@ -2219,7 +2219,6 @@ function assign_username_color_main() {
 
 
 
-
 function updateMOTDCountdown() {
 	$("#countdown").remove();
 	$("#countdowntitle").remove();
@@ -2265,8 +2264,8 @@ if (Math.abs(timeDiff) < 1000) {
 
 
 function countdown (element) {
-	//set up
-	var Month = 0, Day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 8,  timeoffset = 12, temp, isFlapping = false;
+	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 8,  timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19;
+	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
 	element.append('<h3 id="countdowntitle" align="center">Countdown to October</h3>');
 	element.append('<h1 id="countdown" align="center">' + Month + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds + '</h1>');
 
@@ -2285,9 +2284,9 @@ function countdown (element) {
 	function time() { //does the time work
 		var D = new Date(new Date().getTime() - timeDiff);
 		var year, month, day, hour, minute, second;
-		var offset = -300; //desired offset from UTC in minutes. EST: -300, EDT: -240
+		//var offset = -300; //desired offset from UTC in minutes. EST: -300, EDT: -240
 
-		D.setMinutes(D.getUTCMinutes() + offset);
+		//D.setMinutes(D.getUTCMinutes() + offset);
 		year = D.getUTCFullYear();
 		month = D.getUTCMonth() + 1;
 		day = D.getUTCDate();
@@ -2298,6 +2297,7 @@ function countdown (element) {
 		Month = 10 - month;
 		Day = daysInMonth(month, year) - day;
 		Hour = 23 - hour;
+		OctobHour = (dayoffset-day)*24 - hour + starttime -1;
 		Minute = 59 - minute;
 		Seconds = 59 - second;
 	}
@@ -2310,6 +2310,7 @@ function countdown (element) {
 			isFlapping = false;
 		}
 	}
+
 	function make() { //checks the numbers then applies
 		if(Month < 10) Month = '0' + Month;
 		if(Day < 10) Day = '0' + Day;
@@ -2324,17 +2325,15 @@ function countdown (element) {
 			cdtext = Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 		}
 		else if (Month == 0) {
-			if (Day > (31 - dayoffset)) {
-						temp = (31 - dayoffset) - Day;
-						cdtext = temp + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
-					} else if (Day == (31 - dayoffset) && Hour < (24-timeoffset)) {
-						cdtext = "THE TIME HAS COME";
-					} else if(Day == (31 - dayoffset)){
-							fieldNameElement.innerHTML = "Flip Flapping in:";
-							cdtext = (Hour-(24-timeoffset)) + ' : ' + Minute + ' : ' + Seconds;
-					}
-					else {
+			if (day > dayoffset) {
 						cdtext = 11 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+					} else if (day == (dayoffset) && hour > (18)) {
+						cdtext = "THE TIME HAS COME";
+					} else {
+							temp = dayoffset - day;
+							temp = '0' + temp;
+							fieldNameElement.innerHTML = "Flip Flapping in:";
+							cdtext = OctobHour + ' : ' + Minute + ' : ' + Seconds;
 					}
 		}
 		else {
