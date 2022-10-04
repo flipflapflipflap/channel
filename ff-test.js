@@ -2368,6 +2368,7 @@ function countdown (element) {
 			cdtext = Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 		}
 		else if (Month == 0) {
+			day = D.getUTCDate();
 			if (day > dayoffset) {
 						//temp = (31 - dayoffset) - day;
 						//cdtext = temp + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
