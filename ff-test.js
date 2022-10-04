@@ -2310,7 +2310,7 @@ if (Math.abs(timeDiff) < 1000) {
 
 function countdown (element) {
 	//set up
-	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 8,  timeoffset = 12, temp, isFlapping = false, OctobHour = 0;
+	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 8,  timeoffset = 19, temp, OctobHour = 0;
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
 	element.append('<h3 id="countdowntitle" align="center">Countdown to October</h3>');
 	element.append('<h1 id="countdown" align="center">' + Month + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds + '</h1>');
@@ -2343,26 +2343,18 @@ function countdown (element) {
 		Month = 10 - month;
 		Day = daysInMonth(month, year) - day;
 		Hour = 23 - hour;
-		OctobHour = (dayoffset-day)*24 - hour + 18;
+		OctobHour = (dayoffset-day)*24 - hour + timeoffset;
 		Minute = 59 - minute;
 		Seconds = 59 - second;
 	}
 
-	function FlipFlapping() {
-		if (isFlapping === false && Hour === (24-timeoffset) && Month === 0 && Day >= 6) {
-			isFlapping = true;
-		}
-		if (isFlapping === true && Hour !== (24-timeoffset)) {
-			isFlapping = false;
-		}
-	}
 	function make() { //checks the numbers then applies
 		if(Month < 10) Month = '0' + Month;
 		if(Day < 10) Day = '0' + Day;
 		if(Hour < 10) Hour = '0' + Hour;
 		if(Minute < 10) Minute = '0' + Minute;
 		if(Seconds < 10) Seconds = '0' + Seconds;//these lines add a 0 if it's less than 10
-			//fieldNameElement.innerHTML = "An error has happened!";
+
 		//check if time is reasonable. if not gtfo
 		if (Hour > 23 || Minute > 59) {
 			console.error('Countdown error: time is incorrect ' + Hour + ' : ' + Minute + ' : ' + Seconds);
@@ -2371,8 +2363,6 @@ function countdown (element) {
 		}
 		else if (Month == 0) {
 			if (day > dayoffset) {
-						//temp = (31 - dayoffset) - day;
-						//cdtext = temp + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 						cdtext = 11 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 					} else if (day == (dayoffset) && hour > (18)) {
 						cdtext = "THE TIME HAS COME";
@@ -2382,9 +2372,6 @@ function countdown (element) {
 							fieldNameElement.innerHTML = "Flip Flapping in:";
 							cdtext = OctobHour + ' : ' + Minute + ' : ' + Seconds;
 					}
-//					else {
-//						cdtext = 11 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
-//					}
 		}
 		else {
 			if (Month == -1){
