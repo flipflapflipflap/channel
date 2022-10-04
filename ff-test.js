@@ -2343,7 +2343,7 @@ function countdown (element) {
 		Day = daysInMonth(month, year) - day;
 		Hour = 23 - hour;
 //		OctobHour = (dayoffset-day)*24 - hour + starttime;
-		OctobHour = day;
+		OctobHour = hour;
 		Minute = 59 - minute;
 		Seconds = 59 - second;
 	}
