@@ -2342,8 +2342,8 @@ function countdown (element) {
 		Month = 10 - month;
 		Day = daysInMonth(month, year) - day;
 		Hour = 23 - hour;
-//		OctobHour = (dayoffset-day)*24 - hour + starttime;
-		OctobHour = hour;
+		OctobHour = (dayoffset-day)*24 - hour + starttime;
+		console.error(hour);
 		Minute = 59 - minute;
 		Seconds = 59 - second;
 	}
