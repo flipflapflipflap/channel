@@ -2309,8 +2309,7 @@ if (Math.abs(timeDiff) < 1000) {
 
 
 function countdown (element) {
-	//set up
-	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 8,  timeoffset = 19, temp, OctobHour = 0;
+	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 8,  timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19;
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
 	element.append('<h3 id="countdowntitle" align="center">Countdown to October</h3>');
 	element.append('<h1 id="countdown" align="center">' + Month + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds + '</h1>');
@@ -2343,9 +2342,18 @@ function countdown (element) {
 		Month = 10 - month;
 		Day = daysInMonth(month, year) - day;
 		Hour = 23 - hour;
-		OctobHour = (dayoffset-day)*24 - hour + timeoffset;
+		OctobHour = (dayoffset-day)*24 - hour + starttime;
 		Minute = 59 - minute;
 		Seconds = 59 - second;
+	}
+
+	function FlipFlapping() {
+		if (isFlapping === false && Hour === (24-timeoffset) && Month === 0 && Day >= 6) {
+			isFlapping = true;
+		}
+		if (isFlapping === true && Hour !== (24-timeoffset)) {
+			isFlapping = false;
+		}
 	}
 
 	function make() { //checks the numbers then applies
