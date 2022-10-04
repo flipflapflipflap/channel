@@ -2329,9 +2329,9 @@ function countdown (element) {
 	function time() { //does the time work
 		var D = new Date(new Date().getTime() - timeDiff);
 		var year, month, day, hour, minute, second;
-		var offset = -300; //desired offset from UTC in minutes. EST: -300, EDT: -240
+		//var offset = -300; //desired offset from UTC in minutes. EST: -300, EDT: -240
 
-		D.setMinutes(D.getUTCMinutes() + offset);
+		//D.setMinutes(D.getUTCMinutes() + offset);
 		year = D.getUTCFullYear();
 		month = D.getUTCMonth() + 1;
 		day = D.getUTCDate();
@@ -2343,7 +2343,6 @@ function countdown (element) {
 		Day = daysInMonth(month, year) - day;
 		Hour = 23 - hour;
 		OctobHour = (dayoffset-day)*24 - hour + starttime;
-		console.error(hour);
 		Minute = 59 - minute;
 		Seconds = 59 - second;
 	}
