@@ -1400,3 +1400,1478 @@ setInterval(onlineTime, 60000);
 //////////////////
 //////////////////
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* ----- Chat and window extensions and events ----- */
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+$("#cs-motdtext").on("keydown", function(ev) {
+	if (ev.which == 83 && ev.ctrlKey && !ev.shiftKey && !ev.altKey) {
+		socket.emit("setMotd", {
+			motd: $("#cs-motdtext").val()
+		});
+		return false;
+	}
+});
+
+$("#cs-csstext").on("keydown", function(ev) {
+	if (ev.which == 83 && ev.ctrlKey && !ev.shiftKey && !ev.altKey) {
+		socket.emit("setChannelCSS", {
+			css: $("#cs-csstext").val()
+		});
+		return false;
+	}
+});
+
+$("#cs-jstext").on("keydown", function(ev) {
+	if (ev.which == 83 && ev.ctrlKey && !ev.shiftKey && !ev.altKey) {
+		socket.emit("setChannelJS", {
+			js: $("#cs-jstext").val()
+		});
+		return false;
+	}
+});
+
+var pingfield = $('<div class="form-group"><label for="us-ping-link" class="control-label col-sm-4">Notification Sound Link</label><div class="col-sm-8"><input id="us-ping-link" type="text" placeholder="Add a valid link to a .mp3, .ogg, .wav  file." class="form-control cs-textbox"></div></div>')
+	.insertBefore($('label[for="us-sendbtn"]').parent().parent().parent());
+var pinglevel = $('<div class="form-group"><label for="us-ping-level" class="control-label col-sm-4">Notification Sound Volume</label><div class="col-sm-8"><input id="us-ping-level" type="text" placeholder="Enter a valid volume from 0 to 100. Default is 100." class="form-control" onblur=""></div></div>')
+	.insertAfter(pingfield);
+
+$("#us-ping-link").val(PINGLINK).on("keyup", function() {
+	PINGLINK = $(this).val();
+	$(CHATSOUND).attr("src",PINGLINK !== "" ? PINGLINK : "/boop.wav");
+	setOpt(CHANNEL.name + "_PINGLINK", PINGLINK);
+});
+PINGLINK !== "" ? $(CHATSOUND).attr("src",PINGLINK) : '';
+
+$("#us-ping-level").val(PINGVOL*100).on("keyup", function() {
+	var pvol = $(this).val();
+	if (isNaN(pvol)) {
+		$(this).val("");
+	} else {
+		PINGVOL = parseFloat(pvol !== "" ? pvol : 100)/100;
+		if (PINGVOL > 1) {
+			PINGVOL = 1;
+			$(this).val(100);
+		} else if (PINGVOL < 0) {
+			PINGVOL = 0;
+			$(this).val(0);
+		}
+		CHATSOUND.volume = PINGVOL;
+		setOpt(CHANNEL.name + "_PINGVOL", PINGVOL);
+		CHATSOUND.play();
+	}
+}).focusout(function() {
+	CHATSOUND.pause();
+});
+CHATSOUND.volume = PINGVOL;
+
+// fix window resizing in cinema and radio mode and if player is centered
+$(window).resize(function() {
+	(modesel.val()=="chMode" || modesel.val()=="sMode" || modesel.val()=="rMode") ? setMode(modesel.val()) : '';
+	showProfiles();
+});
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// setting global sockets
+socket.on("channelOpts", setUserCSS);
+socket.on("channelCSSJS", setUserCSS);
+var q240480 = $('li[title="240"],li[title="480"]');
+socket.on("mediaUpdate", function(data) {
+	if (Math.abs(data.currentTime - CurrentVideoTime) > 5.1) {
+		updateEndTimes(Math.floor(data.currentTime));
+	}
+	CurrentVideoTime = data.currentTime;
+	if (PLAYER.mediaType == "gd") {
+		q240480.hide();
+	} else if (q240480.css("display") == "none") {
+		q240480.show();
+	}
+});
+socket.on("usercount", function () {
+	showProfiles();
+	fixUserlistHover();
+});
+socket.on("addUser", showProfiles);
+socket.on("setAFK", showProfiles);
+socket.on("changeMedia", function(data) {
+    updateEndTimes(Math.floor(data.currentTime));
+	videoLength = data.seconds;
+	changeTitle();
+	setModeAfterVideoChange();
+	$("#findtime").text() !== 'Video Time' ? $("#findtime").click() : '';
+	if (!$("#videowrap").length) {
+		TitleBarDescription_Caption.length < 1 ? TitleBarDescription_Caption = 'Currently Playing:' : '';
+		$("#currenttitle").text(TitleBarDescription_Caption + " " + data.title);
+	}
+});
+socket.on("setUserRank", function() {
+	toggleClearBtn();
+	showProfiles();
+});
+socket.on("login", patchWrap);
+// setting final layout after loading
+setLayout();
+scrollChat();
+scrollQueue();
+setUserCSS();
+
+/* ----- END OF LIBRARY ----- */
+
+if (!FLUID) {
+	toggleFluidLayout();
+	fluidbtn.removeClass('btn-success');
+}
+if (!LAYOUTBOX) {
+	toggleDiv(configwrap);
+	layoutbtn.removeClass('btn-success');
+}
+if (HIDEMOTD) {
+	toggleDiv("#motdrow");
+	hidemotdbtn.addClass('btn-danger');
+	hidemotdbtn.attr("title","Show MOTD");
+}
+if (HIDEANN) {
+	toggleDiv("#announcements");
+	hideannbtn.addClass('btn-danger');
+	hideannbtn.attr("title","Show Announcements");
+}
+if (HIDEPL) {
+	toggleDiv("#queue");
+	toggleDiv("#plmeta");
+	hideplbtn.addClass('btn-danger');
+	hideplbtn.attr("title","Show Playlist");
+}
+if (HIDEHF) {
+	toggleDiv("nav");
+	toggleDiv("footer");
+	hidehfbtn.addClass('btn-danger');
+	hidehfbtn.attr("title","Show Header and Footer");
+}
+
+function getVideoTime(data) {
+	clearInterval(ADDONESECOND);
+	hour = Math.floor(data.currentTime / 3600);
+	minute = Math.floor(data.currentTime / 60 % 60);
+	second = Math.floor(data.currentTime % 60);
+	second < 10 ? second = '0' + second : '';
+	if (hour === 0) {
+		$("#findtime").text(minute + ':' + second);
+	} else {
+		minute < 10 ? minute = '0' + minute : '';
+		$("#findtime").text(hour + ':' + minute + ':' + second);
+	}
+	ADDONESECOND = setInterval(function() {
+		if (!PLAYER.paused) {
+			second = parseInt(second, 10) + 1;
+			minute = parseInt(minute, 10);
+			if (second === 60) {
+				second = 0;
+				minute++;
+				if (minute === 60) {
+					minute = 0;
+					hour = parseInt(hour, 10) + 1;
+				}
+			}
+			second < 10 ? second = '0' + second : '';
+			if (hour === 0) {
+				$("#findtime").text(minute + ':' + second);
+			} else {
+				minute < 10 ? minute = '0' + minute : '';
+				$("#findtime").text(hour + ':' + minute + ':' + second);
+			}
+		}
+	}, 1000);
+}
+
+currenttimebtn = $('<button id="findtime" class="btn btn-xs btn-default" title="Find current video time">Video Time</button>')
+	.appendTo("#chatheader")
+	.on("click", function() {
+		if ($(this).text() !== 'Video Time') {
+			$(this).text('Video Time');
+			clearInterval(ADDONESECOND);
+			socket.removeListener("mediaUpdate", getVideoTime);
+		} else {
+			getVideoTime({currentTime:getCurrentPlayerTime()});
+			socket.on("mediaUpdate", getVideoTime);
+		}
+});
+
+$('<span id="maxusers" title="Maximum Flappers">' + MAXUSERS + ' max flappers</span>')
+	.appendTo("#chatheader")
+
+Callbacks.usercount = function(count) {
+        CHANNEL.usercount = count;
+        var text = count + " flapper";
+        if(count != 1) {
+            text += "s";
+        }
+        $("#usercount").text(text);
+
+	if (MAXUSERS < count) {
+		MAXUSERS = count;
+		$("#maxusers").text(MAXUSERS + " max flapper");
+		setOpt(CHANNEL.name + "_MAXUSERS" + (new Date().getFullYear()), MAXUSERS);
+	}
+};
+Callbacks.usercount(CHANNEL.usercount);
+
+function getScrollbarWidth() {
+	var outer = document.createElement("div");
+	outer.style.visibility = "hidden";
+	outer.style.width = "100px";
+	outer.style.msOverflowStyle = "scrollbar"; // needed for WinJS apps
+
+	document.body.appendChild(outer);
+
+	var widthNoScroll = outer.offsetWidth;
+	// force scrollbars
+	outer.style.overflow = "scroll";
+
+	// add innerdiv
+	var inner = document.createElement("div");
+	inner.style.width = "100%";
+	outer.appendChild(inner);
+
+	var widthWithScroll = inner.offsetWidth;
+
+	// remove divs
+	outer.parentNode.removeChild(outer);
+
+	return widthNoScroll - widthWithScroll;
+}
+function showProfiles() {
+	if (SHOWPROF && !SHOWING) {
+		SHOWING = true;
+		var oddeven = 0;
+		var ulwidth = $("#userlist").width();
+		var picrow = ulwidth > 75 ? 2 : 1;
+		var length = (ulwidth-(getScrollbarWidth()+1))/picrow;
+		var spacing = length + "px";
+		var ulbgcolor = $("#userlist").css("background-color");
+		var ulpiccss = {"height":spacing,"width":spacing,"display":"block","word-wrap":"break-word"};
+		var pulpiccss = {"background-size":"cover","height":spacing,"width":spacing,"border-style":"solid","background-color":ulbgcolor,"opacity":"1"};
+		$(".userlist_item").each(function() {
+			var pspan = $(this);
+			var uspan = pspan.children().eq(1);
+			var pimg = pspan.data("profile").image || "";
+			var pafk = pspan.hasClass("userlist_afk");
+			removeProfile(pspan);
+			oddeven === 1 && picrow > 1 ? oddeven-- : oddeven++;
+			pimg !== "" ? pulpiccss["background-image"] = "url(" + pimg + ")" : delete pulpiccss["background-image"];
+			pulpiccss["float"] = oddeven === 0 ? "right" : "";
+			pulpiccss["margin-top"] = oddeven === 0 ? "-" + spacing : "1px";
+			pulpiccss["border-color"] = pafk ? "red" : "";
+			pulpiccss["border-width"] = "1px";
+			pulpiccss["opacity"] = pafk ? "0.45" : "1";
+			ulpiccss["font-size"] = pimg === "" ? "" : "0pt";
+			if (pafk) {
+				pspan.mouseenter(function () {pspan.css("opacity","1");});
+				pspan.mouseleave(function () {pspan.css("opacity","0.45");});
+			}
+			pspan.children().eq(0).hide();
+			pspan.css(pulpiccss);
+			uspan.css(ulpiccss);
+		});
+		SHOWING = false;
+	}
+}
+function removeProfile(rdiv) {
+	rdiv.unbind("mouseenter").unbind("mouseleave").removeAttr("style");
+	rdiv.children().eq(0).removeAttr("style");
+	rdiv.children().eq(1).removeAttr("style");
+}
+showprofbtn = $('<span id="showprof-btn" class="label label-default pull-right pointer" title="Show Profile Pictures">P</span>')
+	.insertAfter("#modflair")
+	.on("click", function() {
+		SHOWPROF = !SHOWPROF;
+		setOpt(CHANNEL.name + "_SHOWPROF", SHOWPROF);
+	  	if (SHOWPROF) {
+			showProfiles();
+			showprofbtn.addClass('btn-success');
+			showprofbtn.attr("title", "Show Profile Pictures");
+		} else {
+			$(".userlist_item").each(function() {
+				removeProfile($(this))
+			});
+			showprofbtn.removeClass('btn-success');
+	 		showprofbtn.attr("title", "Hide Profile Pictures");
+		}
+});
+if (SHOWPROF) {
+	showprofbtn.addClass('btn-success');
+	showProfiles();
+}
+
+$(document).keydown(function(event) {
+	if (!event.ctrlKey || event.shiftKey)
+		return true;
+	if (typeof event.target.selectionStart == "undefined" || event.target.selectionStart == null)
+		return true;
+
+	// -- Shortcuts and their properties
+	var tag = {}; tag.wrap = false; tag.braced = false;
+	switch (event.which) {
+		case 83:
+			tag.code   = 'spoiler';
+			tag.wrap   = true;
+			tag.braced = true;
+			break;
+		default: return true;
+		}
+
+	// -- Grab targets complete contents and selection start and end
+	var text  = $(event.target).val();
+	var start = event.target.selectionStart;
+	var end   = event.target.selectionEnd;
+	var caret = text.length;
+	var zero  = (start == end);
+
+	// -- Propagate the changes
+	if (tag.wrap && tag.braced) {
+		text = text.slice(0, start) + '[' + tag.code + ']' + text.slice(start, end) + '[/' + tag.code + ']' + text.slice(end);
+	} else if (tag.wrap) {
+		text = text.slice(0, start) + tag.code + text.slice(start, end) + tag.code + text.slice(end);
+	} else {
+		text = text.slice(0, start) + text.slice(start, end) + tag.code + text.slice(end);
+	}
+	$(event.target).val(text);
+
+	// -- Place the caret where it should be
+	if (zero) {
+		caret = end + tag.code.length + function(){ if(tag.braced) return 2; return 0 }()
+	} else {
+		caret = end + ($(event.target).val().length - caret);
+	}
+
+	event.target.setSelectionRange(caret, caret);
+
+	return false;
+});
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+// danmaku or nico video scrolling text mode for cytu.be
+// paste into channel settings -> edit -> javascript
+// stolen from https://cytu.be/r/25_days_of_autism
+// extracted nico nico code from december.js and css
+// ripped out all the garbage (what the hell is wrong with these people)
+// changed the button to say danmaku (uncultured assholes)
+
+// The interval of time (in ms) to flush messages to the screen
+var NICO_NICO_MESSAGE_QUEUE_TIME = getOrDefault(CHANNEL.name + "_NICO_NICO_MESSAGE_QUEUE_TIME", 100);
+
+var NICORIPOFF = getOrDefault(CHANNEL.name + "_NICORIPOFF", false);
+var marqueeOffset = 0;
+var marqueeheight = 28;
+var playerparent = document.getElementsByClassName("embed-responsive-16by9")[0];
+var playerwrap = document.getElementById("videowrap");
+
+function getNicoPlayerDimensions() {
+	var NICOW = playerparent.offsetWidth;
+	return {
+		NICOH: playerwrap.offsetHeight * 3 / 4,
+		NICOW: NICOW,
+		NICOS: NICOW * .2
+	};
+}
+
+// Patch in enable button here
+var controls = document.getElementById("emotelistbtn").parentNode;
+
+nicobtn = $('<button id="nicobtn" class="btn btn-sm ' + (!NICORIPOFF ? 'btn-default' : 'btn-success') + '" title="Chat on video">Danmaku~</button>')
+	.appendTo("#playercontrols")
+	.on("click", function() {
+		NICORIPOFF = !NICORIPOFF;
+		setOpt(CHANNEL.name + "_NICORIPOFF", NICORIPOFF);
+		if (!NICORIPOFF) {
+			this.className = "btn btn-sm btn-danger";
+			removeNicoText();
+		} else {
+			this.className = "btn btn-sm btn-success";
+		}
+	});
+//socket.on("chatMsg", addNicoNicoMessageDataToQueue);
+socket.on("clearchat", removeNicoText);
+
+// Flush messages to the screen every 100ms
+var nicoNicoMessageDataQueue = [];
+function addNicoNicoMessageDataToQueue(data) {
+	nicoNicoMessageDataQueue.push(data);
+}
+
+function handleNicoNicoMessageDataQueue() {
+	if (nicoNicoMessageDataQueue.length > 0) {
+		nicoChineseRipOff(nicoNicoMessageDataQueue);
+		nicoNicoMessageDataQueue = [];
+	}
+
+	setTimeout(handleNicoNicoMessageDataQueue, NICO_NICO_MESSAGE_QUEUE_TIME);
+}
+handleNicoNicoMessageDataQueue();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// who the hell is OBTO?
+// BEGIN OBTO EDIT
+
+var NicoNicoComment = function () {
+	function NicoNicoComment(commentContainerElement) {
+		_classCallCheck(this, NicoNicoComment);
+
+		this._commentContainerElement = commentContainerElement;
+		this._boundAnimationEndHandler = this._handleAnimationEnd.bind(this);
+		this._isActive = false;
+		this._activateTimeout = undefined;
+		this._animationTimeout = undefined;
+		this._lastActive = Date.now();
+
+		this._initDomElement();
+	}
+
+	_createClass(NicoNicoComment, [{
+		key: 'activate',
+		value: function activate(message, className, cssText) {
+			var _this = this;
+			var contains_image = message.indexOf("<img ") > -1;
+
+			if (!this.domElement) {
+				this._initDomElement();
+			}
+
+			if (this._activateTimeout) {
+				clearTimeout(this._activateTimeout);
+				this._activateTimeout = undefined;
+			}
+
+			// Trigger next frame to ensure the animation plays again
+			this.reset();
+			this._activateTimeout = setTimeout(function () {
+				_this.domElement.innerHTML = '<span>' + message + '</span>';
+				_this.domElement.className = className;
+				_this.domElement.style.cssText = cssText;
+				_this._isActive = true;
+
+				var nicoDimensions = getNicoPlayerDimensions();
+				var imgpx = 0;
+				if (contains_image) {
+					imgpx = nicoDimensions.NICOW * .55;
+				}
+
+				// Manually calculate animation time
+				var timeout = (nicoDimensions.NICOW + _this.domElement.firstChild.offsetWidth + imgpx) / nicoDimensions.NICOS * 1000;
+				_this._animationTimeout = setTimeout(function() {
+					_this.reset();
+				}, timeout);
+			}, 0);
+		}
+	}, {
+		key: 'reset',
+		value: function reset() {
+			if (!this._isActive || !this.domElement) {
+				return;
+			}
+
+			this.domElement.innerHTML = '';
+			this.domElement.className = '';
+			this.domElement.style.cssText = '';
+			this._isActive = false;
+			this._lastActive = Date.now();
+		}
+	}, {
+		key: 'cleanup',
+		value: function cleanup() {
+			this._removeListeners();
+			this._commentContainerElement.removeChild(this.domElement);
+		}
+	}, {
+		key: 'isActive',
+		value: function isActive() {
+			return this._isActive;
+		}
+	}, {
+		key: 'getLastActiveTime',
+		value: function getLastActiveTime() {
+			if (this._isActive) {
+				return Date.now();
+			}
+
+			return this._lastActive;
+		}
+	}, {
+		key: '_handleAnimationEnd',
+		value: function _handleAnimationEnd() {
+			this.reset();
+		}
+	}, {
+		key: '_initDomElement',
+		value: function _initDomElement() {
+			if (this.domElement) {
+				return;
+			}
+
+			this._removeListeners();
+			this.domElement = document.createElement('div');
+			this._commentContainerElement.appendChild(this.domElement);
+			this._addListeners();
+		}
+	}, {
+		key: '_addListeners',
+		value: function _addListeners() {
+			if (!this.domElement) {
+				return;
+			}
+
+			this.domElement.addEventListener(NicoNicoComment.ANIMATION_END_EVENT, this._boundAnimationEndHandler);
+		}
+	}, {
+		key: '_removeListeners',
+		value: function _removeListeners() {
+			if (this._animationTimeout) {
+				clearTimeout(this._animationTimeout);
+				this._animationTimeout = undefined;
+			}
+
+			if (!this.domElement) {
+				return;
+			}
+
+			this.domElement.removeEventListener(NicoNicoComment.ANIMATION_END_EVENT, this._boundAnimationEndHandler);
+		}
+	}]);
+
+  return NicoNicoComment;
+}();
+
+NicoNicoComment.ANIMATION_END_EVENT = function () {
+	var element = document.createElement('fakeelement');
+	var transitions = {
+		"animation": "animationend",
+		"OAnimation": "oAnimationEnd",
+		"MozAnimation": "animationend",
+		"WebkitAnimation": "webkitAnimationEnd"
+	};
+
+	for (var t in transitions) {
+		if (element.style[t] !== undefined) {
+			return transitions[t];
+		}
+	}
+}();
+
+var NicoNicoCommentManager = function () {
+	function NicoNicoCommentManager(commentContainerElement) {
+		_classCallCheck(this, NicoNicoCommentManager);
+
+		this._commentContainerElement = commentContainerElement;
+		this._comments = [];
+		for (var i = 0; i < NicoNicoCommentManager.MINIMUM_COMMENTS_ALLOCATED; i++) {
+			this._comments.push(new NicoNicoComment(this._commentContainerElement));
+		}
+
+		this._cleanupUnusedCommentsTimeout();
+	}
+
+	_createClass(NicoNicoCommentManager, [{
+		key: 'cleanup',
+		value: function cleanup() {
+			for (var i = 0; i < this._comments.length; i++) {
+				var comment = this._comments[i];
+				comment.cleanup();
+			}
+			this._comments = [];
+
+			if (this._cleanupTimeout) {
+				clearTimeout(this._cleanupTimeout);
+				this._cleanupTimeout = undefined;
+			}
+		}
+	}, {
+		key: 'addComments',
+		value: function addComments(messageConfigArr) {
+			var messageIndex = 0;
+			for (var i = 0; i < this._comments.length && messageIndex < messageConfigArr.length; i++) {
+				var comment = this._comments[i];
+				if (comment.isActive()) {
+					continue;
+				}
+
+				var config = messageConfigArr[messageIndex];
+				comment.activate(config.message, config.className, config.cssText);
+				messageIndex++;
+			}
+
+			// Add any remaining messages by creating more comments
+			for (; messageIndex < messageConfigArr.length; messageIndex++) {
+				var config = messageConfigArr[messageIndex];
+				var comment = new NicoNicoComment(this._commentContainerElement);
+				comment.activate(config.message, config.className, config.cssText);
+				this._comments.push(comment);
+			}
+		}
+	}, {
+		key: '_cleanupUnusedCommentsTimeout',
+		value: function _cleanupUnusedCommentsTimeout() {
+			var _this2 = this;
+
+			this._cleanupUnusedComments();
+			this._cleanupTimeout = setTimeout(function () {
+				_this2._cleanupUnusedCommentsTimeout();
+			}, NicoNicoCommentManager.TARGET_EVICTION_TIME_MS);
+		}
+	}, {
+		key: '_cleanupUnusedComments',
+		value: function _cleanupUnusedComments() {
+			var currentTime = Date.now();
+			for (var i = NicoNicoCommentManager.MINIMUM_COMMENTS_ALLOCATED; i < this._comments.length; i++) {
+				var comment = this._comments[i];
+				if (currentTime - comment.getLastActiveTime() >= NicoNicoCommentManager.TARGET_EVICTION_TIME_MS) {
+					// Mark for deletion
+					comment.cleanup();
+					this._comments[i] = null;
+				}
+			}
+
+			this._comments = this._comments.filter(function (a) {
+			return !!a;
+			});
+		}
+	}]);
+
+	return NicoNicoCommentManager;
+}();
+NicoNicoCommentManager.MINIMUM_COMMENTS_ALLOCATED = 50;
+NicoNicoCommentManager.TARGET_EVICTION_TIME_MS = 2 * 1000;
+
+var nicoNicoCommentManager;
+function nicoChineseRipOff(dataArray) {
+	if (!NICORIPOFF) {
+		return;
+	}
+
+	// Filter out bad messages
+	dataArray = dataArray.filter(function(data) {
+		if (data.username === "[server]" || data.meta.shadow) {
+			return false;
+		}
+
+		return true;
+	});
+
+	if (dataArray.length <= 0) {
+		return;
+	}
+
+	if (!nicoNicoCommentManager) {
+		nicoNicoCommentManager = new NicoNicoCommentManager(playerparent);
+	}
+
+	var nicoDimensions = getNicoPlayerDimensions();
+	var builtComments = [];
+	var bundledCommentHtmlArray = [];
+	var bundledCommentMarginTop = 0;
+	function flushBundledComment() {
+		builtComments.push({
+			message: bundledCommentHtmlArray.join(''),
+			className: 'text-marquee',
+			cssText: 'top: ' + bundledCommentMarginTop + 'px;'
+		});
+		bundledCommentHtmlArray = [];
+	}
+
+	for (var i = 0; i < dataArray.length; i++) {
+		var data = dataArray[i];
+
+		var className = "";
+		if (data.meta.addClass === "shout") {
+			className += " shout";
+		}
+
+		var is_image = data.msg.indexOf("<img ") > -1;
+		if (!is_image && bundledCommentHtmlArray.length === 0) {
+		// Margin is only needed for the first div
+			bundledCommentMarginTop = marqueeOffset;
+		}
+
+		if (is_image) {
+			// Don't add images to the bundled comment html
+			builtComments.push({
+				message: data.msg,
+				className: 'text-marquee ' + className,
+				cssText: 'top: ' + (nicoDimensions.NICOH / 5) + 'px;'
+			});
+		} else {
+			bundledCommentHtmlArray.push(
+				'<span class="' + className + '">' +
+				data.msg +
+				'<br>' +
+				'</span>');
+		}
+
+		marqueeOffset += marqueeheight;
+		if (marqueeOffset > nicoDimensions.NICOH) {
+			// Push the built element
+			flushBundledComment();
+			bundledCommentHtmlArray = [];
+			marqueeOffset = 0;
+		}
+	}
+
+	// Add the remaining bundled comment
+	if (bundledCommentHtmlArray.length > 0) {
+		flushBundledComment();
+	}
+	nicoNicoCommentManager.addComments(builtComments);
+}
+
+function removeNicoText() {
+	if (nicoNicoCommentManager) {
+		nicoNicoCommentManager.cleanup();
+		nicoNicoCommentManager = undefined;
+	}
+}
+
+// END OBTO EDIT
+
+$("#videowrap").append('<div id="playercontrols" class="btn-group" />');
+
+var styles = `
+#vidchat {
+    position:absolute;
+    color:white;
+    font-size: 14pt;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    width: 2000px !important;
+    top: 0px;
+    right: 0px;
+}
+
+.text-marquee img {
+    opacity:0.7;
+}
+
+.text-marquee {
+    text-shadow:
+	-1px -1px 0 #000,
+	1px -1px 0 #000,
+	-1px 1px 0 #000,
+	1px 1px 0 #000;
+    color: #FFFFFF !important;
+    font-size: 20px;
+    font-weight: bold;
+    position: absolute;
+    left: 100%;
+    white-space: nowrap;
+    -webkit-transform: translateX(0%);
+        -ms-transform: translateX(0%);
+            transform: translateX(0%);
+    width: 100%;
+    -webkit-animation: 30s forwards linear shift-full-left;
+            animation: 30s forwards linear shift-full-left;
+}
+
+@-webkit-keyframes shift-full-left {
+    100% {
+        -webkit-transform: translateX(-600%);
+                transform: translateX(-600%);
+    }
+}
+
+@keyframes shift-full-left {
+    100% {
+        -webkit-transform: translateX(-600%);
+                transform: translateX(-600%);
+    }
+}
+`
+
+var styleSheet = document.createElement("style")
+styleSheet.type = "text/css"
+styleSheet.innerText = styles
+document.head.appendChild(styleSheet)
+
+//IT IS TIME FOR MY OWN SCRIPT - MONAX
+class colorAssignButton {
+	constructor() {
+		this.create_button_and_pack();
+		this.create_form()
+	}
+
+	create_button_and_pack() {
+		this.button = document.createElement("button");
+		this.button.setAttribute("type","button");
+		this.button.setAttribute("onclick","this.pack_form()"); //this function doesn't exist yet
+		this.button.setAttribute("class","btn btn-sm btn-default");
+		this.buttonId = "assignUsernamebtn";
+		this.button.setAttribute("id",this.buttonId);
+
+		this.buttonText = document.createTextNode("Change color");
+		this.button.appendChild(this.buttonText);
+		this.location = document.getElementById("leftcontrols");
+		this.location.appendChild(this.button);
+	}
+
+	create_form() {
+		this.form = document.createElement("form");
+		this.form.setAttributes("type","submit");
+		this.formId = "assignColorfrm";
+		this.form.setAttribute("id",this.formId);
+	}
+
+	pack_form() {
+
+	}
+
+	pack_forget_form() {
+
+	}
+
+}
+
+function assign_username_color_main() {
+	let button = new colorAssignButton();
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+function updateMOTDCountdown() {
+	$("#countdown").remove();
+	$("#countdowntitle").remove();
+	$("#motdwrap").show();
+	countdown($('#motd'));
+}
+
+var xmlHttp;
+function srvTime(){
+    try {
+        //FF, Opera, Safari, Chrome
+        xmlHttp = new XMLHttpRequest();
+    }
+    catch (err1) {
+        //IE
+        try {
+            xmlHttp = new ActiveXObject('Msxml2.XMLHTTP');
+        }
+        catch (err2) {
+            try {
+                xmlHttp = new ActiveXObject('Microsoft.XMLHTTP');
+            }
+            catch (eerr3) {
+                //AJAX not supported, use CPU time.
+                alert("AJAX not supported");
+            }
+        }
+    }
+    xmlHttp.open('HEAD',window.location.href.toString(),false);
+    xmlHttp.setRequestHeader("Content-Type", "text/html");
+    xmlHttp.send('');
+    return xmlHttp.getResponseHeader("Date");
+}
+
+
+var st = srvTime();
+var date1 = new Date(st);
+var date2 = new Date();
+var timeDiff = date2-date1;
+if (Math.abs(timeDiff) < 1000) {
+	timeDiff = 0;
+}
+
+
+function countdown (element) {
+	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 8,  timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19;
+	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
+	element.append('<h3 id="countdowntitle" align="center">Countdown to October</h3>');
+	element.append('<h1 id="countdown" align="center">' + Month + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds + '</h1>');
+
+	var fieldNameElement = document.getElementById('countdowntitle');
+
+	setInterval(function () { //updates every second
+		time();
+		FlipFlapping();
+		make();
+	}, 1000);
+
+	function daysInMonth(month,year) {
+		return new Date(year, month, 0).getDate();
+	}
+
+	function time() { //does the time work
+		var D = new Date(new Date().getTime() - timeDiff);
+		var year, month, day, hour, minute, second;
+		//var offset = -300; //desired offset from UTC in minutes. EST: -300, EDT: -240
+
+		//D.setMinutes(D.getUTCMinutes() + offset);
+		year = D.getUTCFullYear();
+		month = D.getUTCMonth() + 1;
+		day = D.getUTCDate();
+		hour = D.getUTCHours();
+		minute = D.getUTCMinutes();
+		second = D.getUTCSeconds();
+
+		Month = 10 - month;
+		Day = daysInMonth(month, year) - day;
+		Hour = 23 - hour;
+		OctobHour = (dayoffset-day)*24 - hour + starttime -1;
+		Minute = 59 - minute;
+		Seconds = 59 - second;
+	}
+
+	function FlipFlapping() {
+		if (isFlapping === false && Hour === (24-timeoffset) && Month === 0 && Day >= 6) {
+			isFlapping = true;
+		}
+		if (isFlapping === true && Hour !== (24-timeoffset)) {
+			isFlapping = false;
+		}
+	}
+
+	function make() { //checks the numbers then applies
+		if(Month < 10) Month = '0' + Month;
+		if(Day < 10) Day = '0' + Day;
+		if(Hour < 10) Hour = '0' + Hour;
+		if(Minute < 10) Minute = '0' + Minute;
+		if(Seconds < 10) Seconds = '0' + Seconds;//these lines add a 0 if it's less than 10
+
+		//check if time is reasonable. if not gtfo
+		if (Hour > 23 || Minute > 59) {
+			console.error('Countdown error: time is incorrect ' + Hour + ' : ' + Minute + ' : ' + Seconds);
+		} else if (Month > 0) {
+			cdtext = Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+		}
+		else if (Month == 0) {
+			if (day > dayoffset) {
+						cdtext = 11 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+					} else if (day == (dayoffset) && hour > (18)) {
+						cdtext = "THE TIME HAS COME";
+					} else {
+							temp = dayoffset - day;
+							temp = '0' + temp;
+							fieldNameElement.innerHTML = "Flip Flapping in:";
+							cdtext = OctobHour + ' : ' + Minute + ' : ' + Seconds;
+					}
+		}
+		else {
+			if (Month == -1){
+			cdtext = 10 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+			}
+			else{
+			cdtext = 09 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+
+			}
+			
+		}
+
+			document.getElementById("countdown").textContent = cdtext;
+		}
+	}
+
+updateMOTDCountdown();
+
+var prevLength = 0;
+var MOTD = "";
+var effectClasses = "";
+var classElementTester = new RegExp('<ul.+id="effects".+<\/ul>',"g");
+var defaultEffectsHTMLFront = '<ul id="effects" class="';
+var defaultEffectsHTMLBack = '" style="display:hidden"></ul>';
+
+socket.on('setMotd', function (data) {
+	updateMOTDCountdown();
+	if (CLIENT.rank > 2) {
+		MOTD = data;
+		try {
+			effectClasses = document.getElementById("effects").className;
+		} catch {
+			effectClasses = "off";
+		}
+	}
+});
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+function formatChatMessage(data, last) {
+	if (data.msg.indexOf('/reload') === 0) {
+		document.querySelectorAll("#userlist .userlist_owner,#userlist .userlist_siteadmin").forEach(function(currentAdmins) {
+			if (currentAdmins.textContent === data.username) {
+				
+				setTimeout(function () {
+					setTimeout(function() {
+						location.reload();
+					}, Math.floor(CHANNEL.usercount * 50 * Math.random()));
+				}, 250);
+				RELOADED = true;
+			}
+		});
+		(CLIENT.rank > 2 && !RELOADED) ? socket.emit("chatMsg", {msg:'/kick ' + data.username + ' Quit trying to reload.'}) : RELOADED = false;
+	}
+
+
+	if (data.msg.length <= prevLength+1 && data.msg.length >= prevLength-1 && data.username !== CLIENT.name) {
+		stop = stop - .1;
+		if (stop < 0) {
+			stop = 0;
+		}
+	}
+	prevLength = data.msg.length;
+    // Backwards compat
+    if (!data.meta || data.msgclass) {
+        data.meta = {
+            addClass: data.msgclass,
+            // And the award for "variable name most like Java source code" goes to...
+            addClassToNameAndTimestamp: data.msgclass
+        };
+    }
+	//4CC Team Colors
+	var teamClass = data.msg.match(/(Ð.+Ð)/gi);
+	if (teamClass){
+		teamClass = 'team' + teamClass[0].replace(new RegExp('Ð','g'),'');
+		data.msg = data.msg.replace(/Ð.+Ð/gi,'');
+	} else {
+		teamClass = '';
+	}
+	/*if ($('#btn_anon').hasClass('label-success')){
+		teamClass += ' anon';
+	}*/
+    // Phase 1: Determine whether to show the username or not
+    var skip = data.username === last.name;
+    // Prevent impersonation by abuse of the bold filter
+    if (data.msg.match(/^\s*<strong>\w+\s*:\s*<\/strong>\s*/))
+        skip = false;
+    if (data.meta.forceShowName)
+        skip = false;
+
+	data.msg = stripImages(data.msg);
+    data.msg = execEmotes(data.msg);
+	
+	CustomTextTriggers.handleChatMessage(data);
+//	if (PLAYER.mediaLength > 600) {
+		data.msg = data.msg.replace(TEAMCOLORREGEX,"").replace(/Ð.+Ð/,"").trim();
+		
+		if (data.msg.length === 0) {
+			return;
+		}
+		if (data.msg.replace(/<.+?>| /gi,"").length > 25) {
+			var greaterThanSign = 0;
+			if (data.msg[0] === "<") {
+				greaterThanSign = data.msg.indexOf(">");
+			}
+
+			var noHTMLMsg = data.msg.replace(/<.+?>/gi," ");
+			var splitMsg = noHTMLMsg.split(" ");
+			for (var iChar = 0; iChar < splitMsg.length; iChar++) {
+				if (splitMsg[iChar].length > 25) {
+					data.msg = data.msg.substring(0, 25 + greaterThanSign);
+					break;
+				}
+			}
+		}
+//	}
+    last.name = data.username;
+    var div = $("<div/>");
+    /* drink is a special case because the entire container gets the class, not
+       just the message */
+    if (data.meta.addClass === "drink") {
+        div.addClass("drink");
+        data.meta.addClass = "";
+    }
+
+    // Add timestamps (unless disabled)
+    if (USEROPTS.show_timestamps) {
+        var time = $("<span/>").addClass("timestamp").appendTo(div);
+        var timestamp = new Date(data.time).toTimeString().split(" ")[0];
+        time.text("["+timestamp+"] ");
+        if (data.meta.addClass && data.meta.addClassToNameAndTimestamp) {
+            time.addClass(data.meta.addClass);
+        }
+    }
+
+    // Add username
+    var name = $("<span/>");
+    if (!skip || UCONF.showname === "yes") {
+        name.appendTo(div);
+		$("<strong/>").addClass("username " + teamClass).text(data.username + ": ").appendTo(name);
+		if (data.meta.modflair) {
+			name.addClass(getNameColor(data.meta.modflair));
+		}
+		if (data.meta.addClass && data.meta.addClassToNameAndTimestamp) {
+			name.addClass(data.meta.addClass);
+		}
+		if (data.meta.superadminflair) {
+			name.addClass("label")
+				.addClass(data.meta.superadminflair.labelclass);
+			$("<span/>").addClass(data.meta.superadminflair.icon)
+				.addClass("glyphicon")
+				.css("margin-right", "3px")
+				.prependTo(name);
+		}
+	}
+
+    // Add the message itself
+    var message = $("<span/>").appendTo(div);
+    message[0].innerHTML = data.msg;
+    // For /me the username is part of the message
+    if (data.meta.action) {
+        name.remove();
+        message[0].innerHTML = data.username + " " + data.msg;
+    }
+    if (data.meta.addClass) {
+        message.addClass(data.meta.addClass);
+    }
+    if (data.meta.shadow) {
+        div.addClass("chat-shadow");
+    }
+
+	if (NICORIPOFF) {
+		addNicoNicoMessageDataToQueue(data);
+	}
+
+    return div;
+}
+
+
+
+
+
+setTimeout(function() {
+    $(".teamColorSpan").remove();
+}, 2500);
+
+var REPLYNAME = "";
+
+socket.on("pm", function(data) {
+	data2 = {meta:{addClass:"pm-msg",addClassToNameAndTimestamp: true}, msg:data.msg, time:data.time,username:data.username};
+	if (data.to === CLIENT.name) {
+		data2.msg += "<em> /r to reply</em>"
+		REPLYNAME = data.username;
+		data2.username = "From " + data2.username;
+    } else {
+		data2.username = "To " + data.to;
+	}
+	addChatMessage(data2);
+});
+
+
+
+var stop = getOrDefault(CHANNEL.name + "_STOP", 0);
+var stopLimit = 10;
+var videoLength = 0;
+var videoLimit = 600;
+
+setTimeout(function () {
+	if (videoLength === 0 && $("#currenttitle").text() !== "Nothing Playing") {
+        var splitTime = $(".queue_active .qe_time")[0].innerText.split(":")
+        videoLength = parseInt(splitTime[splitTime.length-1]) + parseInt(splitTime[splitTime.length-2]*60);
+    }
+}, 1500);
+
+setInterval(function() {
+	if (stop > 0) {
+		stop--;
+	}
+	setOpt(CHANNEL.name + "_STOP", stop);
+}, 30000);
+
+$("#chatline").unbind();
+
+$("#chatline").on("paste", function() {
+	if (videoLength > videoLimit) {
+		stop++;
+		setOpt(CHANNEL.name + "_STOP", stop);
+
+    }
+});
+
+$("#chatline").keydown(function(ev) {
+	if (videoLength > videoLimit) {
+		if (ev.keyCode === 38) {
+			stop++;
+			setOpt(CHANNEL.name + "_STOP", stop);
+			if (stop > stopLimit) {
+				setTimeout(function () {
+					$("#chatline")[0].value = "";
+					$("#chatline").attr("placeholder", CLIENT.name + " needs to settle down.");
+				}, 1);
+			}
+        } else if (!ev.ctrlKey && ev.keyCode !== 86 && stop > 0) {
+            stop = stop - .1;
+			setOpt(CHANNEL.name + "_STOP", stop);
+            if (stop < 0) {
+                stop = 0;
+            } else if (stop < stopLimit) {
+                $("#chatline").attr("placeholder","");
+            }
+        }
+    }
+
+    // Enter/return
+    if(ev.keyCode == 13) {
+        if (CHATTHROTTLE) {
+            return;
+        }
+        var msg = $("#chatline").val();
+        if(msg.trim()) {
+            var meta = {};
+            if (USEROPTS.adminhat && CLIENT.rank >= 255) {
+                msg = "/a " + msg;
+            } else if (USEROPTS.modhat && CLIENT.rank >= Rank.Moderator) {
+                meta.modflair = CLIENT.rank;
+            }
+
+            // The /m command no longer exists, so emulate it clientside
+            if (CLIENT.rank >= 2 && msg.indexOf("/m ") === 0) {
+                meta.modflair = CLIENT.rank;
+                msg = msg.substring(3);
+            }
+			if (msg.indexOf("/r ") === 0) {
+				if (REPLYNAME === "") {
+					return;
+				}
+				socket.emit("pm", {
+					msg: msg.replace("/r ","").replace("/reply ",""),
+					meta: meta,
+					to: REPLYNAME
+				});
+			} else if (msg.indexOf("/w ") === 0) {
+				msg = msg.replace("/w ","");
+				pmName = msg.split(" ")[0];
+				msg = msg.replace(pmName + " ","");
+				socket.emit("pm", {
+					msg: msg,
+					meta: meta,
+					to: pmName
+				});
+			} else {
+				var t = msg.trim();
+				if (TEAMCOLOR && t.indexOf("/") !== 0) {
+					t = t + ' Ð' + TEAMCOLOR + 'Ð';
+				}
+				socket.emit("chatMsg", {
+					msg: t,
+					meta: meta
+				});
+			}
+
+		    CHATHIST.push($("#chatline").val());
+		    CHATHISTIDX = CHATHIST.length;
+		    $("#chatline").val("");
+
+        }
+        return;
+    }
+    else if(ev.keyCode == 9) { // Tab completion
+        try {
+            chatTabComplete(ev.target);
+        } catch (error) {
+            console.error(error);
+        }
+        ev.preventDefault();
+        return false;
+    }
+    else if(ev.keyCode == 38) { // Up arrow (input history)
+        if(CHATHISTIDX == CHATHIST.length) {
+            CHATHIST.push($("#chatline").val());
+        }
+        if(CHATHISTIDX > 0) {
+            CHATHISTIDX--;
+            $("#chatline").val(CHATHIST[CHATHISTIDX]);
+        }
+
+        ev.preventDefault();
+        return false;
+    }
+    else if(ev.keyCode == 40) { // Down arrow (input history)
+        if(CHATHISTIDX < CHATHIST.length - 1) {
+            CHATHISTIDX++;
+            $("#chatline").val(CHATHIST[CHATHISTIDX]);
+        }
+
+        ev.preventDefault();
+        return false;
+    }
+});
+
+
+
+
+
+
+showbgbtn = $('<p id="showbg" class="navbar-text" title="Show background" style="cursor:pointer !important;">Show BG</p>')
+	.appendTo($("#nav-collapsible"))
+	.on("click", function() {
+		if ($("#showbgcss").length === 0) {
+			$("<style id=\"showbgcss\">body, .nav, #logoutform, #streamtimewrap, div{visibility:hidden !important;}#showbg{visibility:visible !important;}</style>").appendTo("head");
+			setTimeout(function() {
+				$(document).on("click.showbg", function() {
+					$("#showbgcss").remove();
+					$(this).unbind("click.showbg");
+				});
+			},50);
+		}
+});
+
+
+
+class CustomTextTriggers {
+    static init() {
+        // Only place you need to add a new effect to make it work
+        CustomTextTriggers.effects = [
+				];
+        if (CustomTextTriggers.has_init) {
+            return;
+        }
+        CustomTextTriggers.has_init = false;
+
+        // Setup the effect lookup
+        CustomTextTriggers.effect_lookup = new Map();
+        for (let effect_cls of CustomTextTriggers.effects) {
+            effect_cls.init();
+            CustomTextTriggers.effect_lookup.set(effect_cls.command,
+                {effect: effect_cls, handle: effect_cls.handleCommand});
+        }
+
+        // TODO make this "/effects arg" with some kind of handler?
+        // Add non-effect commands here
+        CustomTextTriggers.effect_lookup.set('/effects_disable',
+            {effect: null, handle: CustomTextTriggers.disableEffects});
+        CustomTextTriggers.effect_lookup.set('/effects_enable',
+            {effect: null, handle: CustomTextTriggers.enableEffects});
+        CustomTextTriggers.effect_lookup.set('/effects_stop',
+            {effect: null, handle: CustomTextTriggers.stopEffects});
+
+        // testing
+        //CustomTextTriggers.effect_lookup.get('/padoru').handle([], {});
+
+    }
+
+    static isMod(username) {
+        try {
+            let is_mod = false;
+			document.querySelectorAll("#userlist .userlist_owner,#userlist .userlist_siteadmin").forEach(function(currentAdmins) {
+                if (currentAdmins.textContent === username) {
+                    is_mod = true;
+                    return false;
+                }
+            });
+
+            return is_mod;
+        } catch (e) { return false; }
+    }
+
+    static isFirstMod() {
+        const first_mod_element = document.querySelector("#userlist .userlist_owner,#userlist .userlist_siteadmin");
+        if (!first_mod_element) {
+            return false;
+        }
+
+        return first_mod_element.textContent === CLIENT.name;
+    }
+
+    static randomElement(array) {
+        return array[Math.floor(Math.random() * array.length)];
+    }
+
+    /* Command handlers */
+    static handleChatMessage(msg_data) {
+        const is_shadowed = msg_data.username === CLIENT.name && msg_data.meta.shadow;
+        if (msg_data.username === "[server]" || is_shadowed) {
+            return;
+        }
+
+        if (!CustomTextTriggers.isMod(msg_data.username)) {
+            return;
+        }
+
+        // If this client was the one who sent the message
+        const did_send_the_message = CLIENT.name === msg_data.username;
+
+        const message_parts = msg_data.msg.trim().toLowerCase().replace(/\s\s+/igm, ' ').split(' ');
+        if (message_parts.length <= 0 || !message_parts[0]) {
+            return;
+        }
+
+        const [effect_name, ...effect_args] = message_parts;
+        if (effect_name[0] !== '/') {
+            return;
+        }
+
+        // Build dict for any other arguments we should send
+        // This should be a dict to provide these somewhat explicitly, but support addition
+        // of future arguements without us having to modify old effect code
+        let other_args = {
+            'did_send_the_message': did_send_the_message,
+        };
+
+        // Get the command and handle command if valid
+        let command_class = CustomTextTriggers.effect_lookup.get(effect_name);
+        if (command_class !== undefined) {
+            command_class.handle(effect_args, other_args);
+        }
+    }
+
+    static disableEffects() {
+        for (let effect of CustomTextTriggers.effects) {
+            effect.disable()
+        }
+    }
+
+    static enableEffects() {
+        for (let effect of CustomTextTriggers.effects) {
+            effect.enable()
+        }
+    }
+
+    static stopEffects() {
+        for (let effect of CustomTextTriggers.effects) {
+            effect.stop()
+        }
+    }
+}
+
+
+CustomTextTriggers.init();
+
+
+
+
+
+
