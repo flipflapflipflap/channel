@@ -961,3 +961,180 @@ function selectRandomLink(data) {
 
 setTimeout(document.getElementById("mediarefresh").click(), 500);
 
+
+//////////////
+//////////////
+// GOOD
+//////////////
+//////////////
+
+
+
+function setPanelProperties(div) {
+	height = $("#userlist").height();
+	width = $("#userlist").width();
+	$(div).css({'background-color':'black', 'height':height + 2 + 'px', 'width':width + 'px'});
+}
+
+function antiAFKfunction() {
+	$(".userlist_item").each(function() {
+		var ulthis = $(this);
+		if (ulthis.children().eq(1).text() === CLIENT.name && ulthis.hasClass("userlist_afk")) {
+			socket.emit("chatMsg", {msg: '/afk'});
+			return;
+		}
+	});
+}
+
+function turnOffBtn() {
+	turnoffbtn = true;
+	$("#chatfunc-dropdown").find('button').each(function() {
+		$(this).hasClass("btn-danger") ? turnoffbtn = false : '';
+	});
+	turnoffbtn ? $("#chatflair").removeClass("label-success").addClass("label-default") : $("#chatflair").removeClass("label-default").addClass("label-success");
+}
+
+function makeChatPanel() {
+	$("#userlist").append('<div id="chatfunc-dropdown" />');
+	$("#chatfunc-dropdown").append('<div id="spamclear">Auto clear chat</div>');
+	spamcleardiv = $("<div/>").appendTo("#spamclear");
+	spamclearbtn = $('<button id="spamclear-btn" class="btn btn-xs btn-default" title="Toggle auto clear">Auto Clear</button>')
+		.appendTo(spamcleardiv)
+		.on("click", function() {
+			if (!CLEARING) {
+				$(this).text('Stop Clearing').addClass('btn-danger');
+				CLEARING = setInterval(function() {
+					socket.emit("chatMsg", {msg: '/clear'});
+				}, 500);
+			} else {
+				$(this).text('Auto Clear').removeClass('btn-danger');
+				clearInterval(CLEARING);
+				CLEARING = false;
+			}
+			turnOffBtn();
+		});
+
+	$("#chatfunc-dropdown").append('<div id="antiafk">Never go AFK</div>');
+	antiafkdiv = $("<div/>").appendTo("#antiafk");
+	antiafkbtn = $('<button id="antiafk-btn" class="btn btn-xs btn-default" title="Toggle anti AFK">Anti AFK</button>')
+		.appendTo(antiafkdiv)
+		.on("click", function() {
+			if (!ANTIAFK) {
+				antiAFKfunction();
+				$(this).addClass('btn-danger');
+				ANTIAFK = socket.on("setAFK", antiAFKfunction);
+			} else {
+				$(this).removeClass('btn-danger');
+				socket.removeListener("setAFK", antiAFKfunction);
+				ANTIAFK = false;
+			}
+			turnOffBtn();
+		});
+// maybe
+	$("#chatfunc-dropdown").append('<div id="imgsize">Adjust image/webm size</div>');
+	imgsizediv = $("<div/>").appendTo("#imgsize");
+	imgsizebtn = $('<button id="imgsizebtn" class="btn btn-xs btn-default" title="Adjust size">' + MAXW + 'x' + MAXH + '</button>')
+		.appendTo(imgsizediv)
+		.on("click", function() {
+			var tempvar = $("#chatline").val();
+			var tempvar2 = tempvar.split(" ");
+			if (tempvar2[0] > 0 && tempvar2[1] > 0) {
+				MAXW = tempvar2[0];
+				setOpt(CHANNEL.name + "_MAXW", MAXW);
+				MAXH = tempvar2[1];
+				setOpt(CHANNEL.name + "_MAXH", MAXH);
+				$(".pm-buffer.linewrap img, .pm-buffer.linewrap video, #messagebuffer.linewrap img, #messagebuffer.linewrap video").css({"max-width": MAXW + "px","max-height": MAXH + "px"});
+				$("#chatline").val("");
+				$(this).text(MAXW + 'x' + MAXH);
+			} else {
+				alert("Invalid input. Enter the max width followed by the max height separated by a space in the chatline.\nEx. \"400 200\"");
+			}
+	});
+// maybe
+	_chatBuffer = addChatMessage;
+	addChatMessage = function(data) {
+		_chatBuffer(data);
+		//$("#messagebuffer.linewrap img").css({"max-height": MAXH + "px","max-width": MAXW + "px"});
+	}
+}
+//$("#messagebuffer.linewrap img").css({"max-height": MAXH + "px","max-width": MAXW + "px"});
+
+makeChatPanel();
+chatfunc = $("#chatfunc-dropdown").detach();
+
+
+chatflair = $('<span id="chatflair" class="label label-default pull-right pointer" title="Press F">F</span>')
+	.insertAfter("#modflair")
+	.on("click", function() {
+		!CHATFUNC ? chatfunc.appendTo($("#userlist")) : chatfunc.detach();
+		CHATFUNC = !CHATFUNC;
+		toggleClearBtn();
+		setPanelProperties("#chatfunc-dropdown");
+	});
+
+
+autoscrollbtn = $('<span id="autoscrollbtn" class="label label-default pull-right pointer" title="Toggle to always scroll chat">S</span>')
+	.insertAfter("#modflair")
+	.on("click", function() {
+		if ($(this).hasClass("label-success")) {
+			$(this).removeClass("label-success").addClass("label-default");
+			socket.removeListener("chatMsg", scrollChat);
+		} else {
+			$(this).addClass("label-success").removeClass("label-default");
+			socket.on("chatMsg", scrollChat);
+		}
+	});
+
+
+// optional removing of "Home" menu from header
+$("#home-link").remove();
+
+$("#layout-link li:nth-child(2) a").on("click", function() {
+	$("#transformationform, #modeform").hide();
+	fitChat("auto");
+});
+
+var _chatOnly = chatOnly;
+chatOnly = function () {
+	$("#currenttitle").css({"display":"inline","border-width":"0px"}).appendTo($("#chatheader"));
+	webmthing = $("<div/>").appendTo($('<div id="webmthing">Toggle webms</div>').appendTo(chatfunc));
+	embedvid.removeClass("btn-sm").addClass("btn-xs").appendTo(webmthing);
+	loopwebm.removeClass("btn-sm").addClass("btn-xs").appendTo(webmthing);
+	autovid.removeClass("btn-sm").addClass("btn-xs").appendTo(webmthing);
+	_chatOnly();
+	scrollChat();
+	if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+		$("#findtime,#currenttitle").remove();
+		$("span.label.label-default.pull-right.pointer").each(function() {
+			var btext = $(this).text();
+			if (btext.length > 1) {
+				$(this).text(btext.charAt(0));
+			}
+		});
+	}
+};
+
+var	vidRemoved = false;
+
+//////////////
+//////////////
+// BAD ABOVE
+//////////////
+//////////////
+
+
+
+//////////////////
+//////////////////
+//////////////////
+//////////////////
+
+// *** END SEARCH
+
+//////////////////
+//////////////////
+//////////////////
+//////////////////
+//////////////////
+//////////////////
+//////////////////
