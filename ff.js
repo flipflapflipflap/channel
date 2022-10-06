@@ -1027,13 +1027,13 @@ function makeChatPanel() {
 	_chatBuffer = addChatMessage;
 	addChatMessage = function(data) {
 		_chatBuffer(data);
-		$("#messagebuffer.linewrap img").css({"max-height": MAXH + "px","max-width": MAXW + "px"});
+		//$("#messagebuffer.linewrap img").css({"max-height": MAXH + "px","max-width": MAXW + "px"});
 	}
 }
 
 ////////
 //
-// disabling studibly large emotes
+// disabling stupidly large emotes
 //
 // $("#messagebuffer.linewrap img").css({"max-height": MAXH + "px","max-width": MAXW + "px"});
 
