@@ -2325,7 +2325,7 @@ function countdown (element) {
 			cdtext = Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 		}
 		else if (Month == 0) {
-			if (day > dayoffset) {
+			if (31 - dayoffset > Day) {
 						cdtext = 11 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 					} else if (day == (dayoffset) && hour > (18)) {
 						cdtext = "THE TIME HAS COME";
