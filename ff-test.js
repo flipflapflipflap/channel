@@ -2328,7 +2328,7 @@ function countdown (element) {
 			if (31 - dayoffset > Day) {
 						fieldNameElement.innerHTML = "Countdown to (next) October:";
 						cdtext = 11 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
-					} else if (day == (dayoffset) && hour > (18)) {
+					} else if ((31 - dayoffset == Day) && Hour < 7) {
 						cdtext = "THE TIME HAS COME";
 					} else {
 							temp = dayoffset - day;
