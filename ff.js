@@ -2312,7 +2312,7 @@ function countdown (element) {
 	}
 
 	function make() { //checks the numbers then applies
-		if(Month < 10) Month = '0' + Month;
+		if(Month < 10 && Month >= 0) Month = '0' + Month;
 		if(Day < 10) Day = '0' + Day;
 		if(Hour < 10) Hour = '0' + Hour;
 		if(Minute < 10) Minute = '0' + Minute;
