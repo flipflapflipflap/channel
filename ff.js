@@ -1,15 +1,4 @@
-// stolen from https://cytu.be/r/25_days_of_autism
-// removed majority of effects
-// danmaku implementation uses someone else's modification of 25day's nico nico nii 
-// user interface, chat icons, stream countdown, and 
-//		video times kept from 25days (slightly modified)
-// probably a lot of junk in here that could be cleaned up, but I've 
-//		never worked with javascript before, and getting just this far
-//		was a pain. I'll try to come back later and fix things up.
-// also, something's wrong with the message history when the page loads up,
-//		but I can't figure out a solution. Seems to work fine during runtime though
-//		
-//
+// modified / stolen from https://cytu.be/r/25_days_of_autism
 
 
 
@@ -2299,8 +2288,8 @@ function countdown (element) {
 		second = D.getUTCSeconds();
 		
 		
-		daysInYear = ( Year.isLeap( year ) ) ? 366 : 365 ;
 		dayOfYear = LocalDate.now( ZoneId.of( "UTC" ).getDayOfYear() );
+		daysInYear = ( Year.isLeap( year ) ) ? 366 : 365 ;
 		day2 = daysInYear - dayOfYear;
 		
 		
