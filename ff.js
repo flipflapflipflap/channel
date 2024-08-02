@@ -2254,10 +2254,12 @@ if (Math.abs(timeDiff) < 1000) {
 
 function countdown (element) {
 	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 12,  timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19;
-	Calendar cal = Calendar.getInstance();
+	var daysInYear, dayOfYear, day2, numOfDays;
+Calendar cal;
+	
+	cal =Calendar.getInstance();
 	cal.setTime(new Date());
-	int numOfDays = cal.getActualMaximum(Calendar.DAY_OF_YEAR);
-	var daysInYear, dayOfYear, day2;
+	numOfDays = cal.getActualMaximum(Calendar.DAY_OF_YEAR);
 	
 	
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
