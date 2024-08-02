@@ -2253,7 +2253,7 @@ if (Math.abs(timeDiff) < 1000) {
 
 
 function countdown (element) {
-	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 12, monthoffset = 10, timeoffset = 12, temp, isFlapping = false, starttime = 19,hourDiff,dayDiff;
+	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 2, monthoffset = 8, timeoffset = 12, temp, isFlapping = false, starttime = 19,hourDiff,dayDiff;
 	var D;
 	var chosenYear = 2024;
 	var daysInYear, dayOfYear, day2, numOfDays;
@@ -2272,7 +2272,7 @@ function countdown (element) {
 	
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
 	element.append('<h3 id="countdowntitle" align="center">Flip Flapping in:</h3>');
-	element.append('<h1 id="countdown" align="center">' + Month + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds + '</h1>');
+	element.append('<h1 id="countdown" align="center">'  + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds + '</h1>');
 
 	var fieldNameElement = document.getElementById('countdowntitle');
 
