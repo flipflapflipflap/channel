@@ -2253,7 +2253,7 @@ if (Math.abs(timeDiff) < 1000) {
 
 
 function countdown (element) {
-	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 12,  timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19;
+	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 2, monthoffset = 8, timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19;
 	var D;
 	var chosenYear = 2024;
 	var daysInYear, dayOfYear, day2, numOfDays;
@@ -2267,7 +2267,7 @@ function countdown (element) {
 	var monthPstNumbers = [0,31,58+leapPstYear,89+leapPstYear,119+leapPstYear,150+leapPstYear,180+leapPstYear,211+leapPstYear,242+leapPstYear,272+leapPstYear,303+leapPstYear,333+leapPstYear];
 	
 	
-	var chosenDay = monthPreNumbers[9] + dayoffset;
+	var chosenDay = monthPreNumbers[monthoffset-1] + dayoffset;
 	
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
 	element.append('<h3 id="countdowntitle" align="center">Countdown to October</h3>');
