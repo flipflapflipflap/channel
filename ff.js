@@ -2254,7 +2254,9 @@ if (Math.abs(timeDiff) < 1000) {
 
 function countdown (element) {
 	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 12,  timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19;
-	
+	Calendar cal = Calendar.getInstance();
+	cal.setTime(new Date());
+	int numOfDays = cal.getActualMaximum(Calendar.DAY_OF_YEAR);
 	var daysInYear, dayOfYear, day2;
 	
 	
@@ -2288,9 +2290,7 @@ function countdown (element) {
 		second = D.getUTCSeconds();
 		
 		
-		dayOfYear = LocalDate.now( ZoneId.of( "UTC" ).getDayOfYear() );
-		daysInYear = ( Year.isLeap( year ) ) ? 366 : 365 ;
-		day2 = daysInYear - dayOfYear;
+		
 		
 		
 
@@ -2322,7 +2322,8 @@ function countdown (element) {
 		if (Hour > 23 || Minute > 59) {
 			console.error('Countdown error: time is incorrect ' + Hour + ' : ' + Minute + ' : ' + Seconds);
 		} else if (Month > 0) {
-			cdtext = daysInYear + ' : ' + dayOfYear + ' : ' + day2 + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+			cdtext = numOfDays	+ ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+			//cdtext = daysInYear + ' : ' + dayOfYear + ' : ' + day2 + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 		}
 		else if (Month == 0) {
 			if (31 - dayoffset > Day) {
