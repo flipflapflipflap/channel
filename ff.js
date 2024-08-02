@@ -2325,9 +2325,12 @@ function countdown (element) {
 	}
 
 	function make() { //checks the numbers then applies
+		var dT = dayDiff, hT = hourDiff;
+		if(dayDiff < 10) dT = '0' + dT;
+		if(hourDiff < 10) hT = '0' + hT;
 		if(Minute < 10) Minute = '0' + Minute;
 		if(Seconds < 10) Seconds = '0' + Seconds;//these lines add a 0 if it's less than 10
-
+	
 		//check if time is reasonable. if not gtfo
 		if (Hour > 23 || Minute > 59) {
 			console.error('Countdown error: time is incorrect ' + Minute + ' : ' + Seconds);
