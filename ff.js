@@ -2346,7 +2346,7 @@ function countdown (element) {
 		}	
 		else {
 			fieldNameElement.innerHTML = "See you next year...";
-			cdtext = Number(daysInPstYear+dayDiff+leapPreYear) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
+			cdtext = Number(daysInPstYear+dayDiff-leapPreYear) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
 		}
 
 			document.getElementById("countdown").textContent = cdtext;
