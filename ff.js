@@ -2300,7 +2300,7 @@ function countdown (element) {
 		second = D.getUTCSeconds();
 		
 		
-		currentDate = Number(monthPreNumbers[D.getUTCMonth()] + D.getUTCDate());
+		currentDay = Number(monthPreNumbers[D.getUTCMonth()] + D.getUTCDate());
 
 		dayDiff = chosenDay - currentDay;
 		hourDiff = starttime - hour -1;	
@@ -2336,8 +2336,7 @@ function countdown (element) {
 		if (Hour > 23 || Minute > 59) {
 			console.error('Countdown error: time is incorrect ' + Hour + ' : ' + Minute + ' : ' + Seconds);
 		} else if (currentDay < chosenDay) {
-			cdtext = dayDiff;
-//			cdtext = dayDiff + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;
+			cdtext = dayDiff + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;
 //			cdtext = chosenDay + ' : ' + Number(monthPreNumbers[D.getUTCMonth()] + D.getUTCDate()) + ' : ' + daysInPreYear;// + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 			//cdtext = daysInYear + ' : ' + dayOfYear + ' : ' + day2 + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 		}
