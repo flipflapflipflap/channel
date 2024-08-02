@@ -2264,7 +2264,11 @@ if (Math.abs(timeDiff) < 1000) {
 
 
 function countdown (element) {
-	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 7,  timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19;
+	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 12,  timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19;
+	
+	var daysInYear, dayOfYear, day2;
+	
+	
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
 	element.append('<h3 id="countdowntitle" align="center">Countdown to October</h3>');
 	element.append('<h1 id="countdown" align="center">' + Month + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds + '</h1>');
@@ -2293,6 +2297,13 @@ function countdown (element) {
 		hour = D.getUTCHours();
 		minute = D.getUTCMinutes();
 		second = D.getUTCSeconds();
+		
+		
+		daysInYear = ( Year.isLeap( year ) ) ? 366 : 365 ;
+		dayOfYear = LocalDate.now( ZoneId.of( "UTC" ).getDayOfYear() ;
+		day2 = daysInYear - dayOfYear;
+		
+		
 
 		Month = 10 - month;
 		Day = daysInMonth(month, year) - day;
@@ -2322,7 +2333,7 @@ function countdown (element) {
 		if (Hour > 23 || Minute > 59) {
 			console.error('Countdown error: time is incorrect ' + Hour + ' : ' + Minute + ' : ' + Seconds);
 		} else if (Month > 0) {
-			cdtext = Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+			cdtext = daysInYear + ' : ' + dayOfYear + ' : ' + day2 + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 		}
 		else if (Month == 0) {
 			if (31 - dayoffset > Day) {
