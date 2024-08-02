@@ -2296,11 +2296,7 @@ function countdown (element) {
 		second = D.getUTCSeconds();
 		
 		
-				
-		dayOfYear = LocalDate.now( ZoneId.of( "UTC" ).getDayOfYear() );
-		daysInYear = ( Year.isLeap( year ) ) ? 366 : 365 ;
-		day2 = daysInYear - dayOfYear;
-		
+
 		
 
 		Month = 10 - month;
