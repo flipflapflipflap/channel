@@ -2253,7 +2253,7 @@ if (Math.abs(timeDiff) < 1000) {
 
 
 function countdown (element) {
-	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 12, monthoffset = 10, timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19,hourDiff,dayDiff;
+	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 12, monthoffset = 10, timeoffset = 12, temp, isFlapping = false, starttime = 19,hourDiff,dayDiff;
 	var D;
 	var chosenYear = 2024;
 	var daysInYear, dayOfYear, day2, numOfDays;
@@ -2271,7 +2271,7 @@ function countdown (element) {
 	var currentDay;
 	
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
-	element.append('<h3 id="countdowntitle" align="center">Countdown to October</h3>');
+	element.append('<h3 id="countdowntitle" align="center">Flip Flapping in:</h3>');
 	element.append('<h1 id="countdown" align="center">' + Month + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds + '</h1>');
 
 	var fieldNameElement = document.getElementById('countdowntitle');
@@ -2311,7 +2311,6 @@ function countdown (element) {
 		Month = 10 - month;
 		Day = daysInMonth(month, year) - day;
 		Hour = 23 - hour;
-		OctobHour = (dayoffset-day)*24 - hour + starttime -1;
 		Minute = 59 - minute;
 		Seconds = 59 - second;
 	}
@@ -2326,43 +2325,25 @@ function countdown (element) {
 	}
 
 	function make() { //checks the numbers then applies
-		if(Month < 10 && Month >= 0) Month = '0' + Month;
-		if(Day < 10) Day = '0' + Day;
-		if(Hour < 10) Hour = '0' + Hour;
 		if(Minute < 10) Minute = '0' + Minute;
 		if(Seconds < 10) Seconds = '0' + Seconds;//these lines add a 0 if it's less than 10
 
 		//check if time is reasonable. if not gtfo
 		if (Hour > 23 || Minute > 59) {
-			console.error('Countdown error: time is incorrect ' + Hour + ' : ' + Minute + ' : ' + Seconds);
-		} else if (currentDay < chosenDay) {
-			cdtext = dayDiff + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;
-//			cdtext = chosenDay + ' : ' + Number(monthPreNumbers[D.getUTCMonth()] + D.getUTCDate()) + ' : ' + daysInPreYear;// + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
-			//cdtext = daysInYear + ' : ' + dayOfYear + ' : ' + day2 + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+			console.error('Countdown error: time is incorrect ' + Minute + ' : ' + Seconds);
 		}
-		else if (currentDay == chosenDay) {
-			if (31 - dayoffset > Day) {
-						fieldNameElement.innerHTML = "Countdown to (next) October:";
-						cdtext = 11 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
-					} else if ((31 - dayoffset == Day) && Hour < (24 - 19)) {
-						fieldNameElement.innerHTML = "";
-						cdtext = "THE TIME HAS COME";
-					} else {
-							temp = dayoffset - day;
-							temp = '0' + temp;
-							fieldNameElement.innerHTML = "Flip Flapping in:";
-							cdtext = OctobHour + ' : ' + Minute + ' : ' + Seconds;
-					}
-		}
+		else if (currentDay <= chosenDay) {
+			if (currentDay == chosenDay && starttime - hour -1 < 0) {
+					fieldNameElement.innerHTML = "";
+					cdtext = "THE TIME HAS COME";
+				}
+			else {
+					cdtext = dayDiff + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;
+				}
+		}	
 		else {
-			if (Month == -1){
-			cdtext = 10 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
-			}
-			else{
-			cdtext = 09 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
-
-			}
-			
+			fieldNameElement.innerHTML = "See you next year...";
+			cdtext = Number(daysInPstYear+dayDiff+leapPreYear) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
 		}
 
 			document.getElementById("countdown").textContent = cdtext;
