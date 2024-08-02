@@ -2254,6 +2254,7 @@ if (Math.abs(timeDiff) < 1000) {
 
 function countdown (element) {
 	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 12,  timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19;
+	var D;
 	var chosenYear = 2024;
 	var daysInYear, dayOfYear, day2, numOfDays;
 	var leapPreYear = Number((new Date(chosenYear    ,1,29)).getMonth() == 1);
@@ -2283,8 +2284,8 @@ function countdown (element) {
 	}
 
 	function time() { //does the time work
-		var D = new Date(new Date().getTime() - timeDiff);
 		var year, month, day, hour, minute, second;
+		D = new Date(new Date().getTime() - timeDiff);
 		//var offset = -300; //desired offset from UTC in minutes. EST: -300, EDT: -240
 
 		//D.setMinutes(D.getUTCMinutes() + offset);
@@ -2327,7 +2328,7 @@ function countdown (element) {
 		if (Hour > 23 || Minute > 59) {
 			console.error('Countdown error: time is incorrect ' + Hour + ' : ' + Minute + ' : ' + Seconds);
 		} else if (Month > 0) {
-			cdtext = chosenDay + ' : ' + Number(monthPreNumbers[month-1] + day) + ' : ' + daysInPreYear + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+			cdtext = chosenDay + ' : ' + Number(monthPreNumbers[D.getUTCMonth()] + D.getUTCDate()) + ' : ' + daysInPreYear + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 			//cdtext = daysInYear + ' : ' + dayOfYear + ' : ' + day2 + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 		}
 		else if (Month == 0) {
