@@ -2262,10 +2262,12 @@ function countdown (element) {
 	
 	var daysInPreYear = 365 + leapPreYear;
 	var daysInPstYear = 365 + leapPstYear;	
-	var chosenDay = 274 + dayoffset + leapPreYear;
 	
 	var monthPreNumbers = [0,31,59+leapPreYear,90+leapPreYear,120+leapPreYear,151+leapPreYear,181+leapPreYear,212+leapPreYear,243+leapPreYear,273+leapPreYear,304+leapPreYear,334+leapPreYear];
 	var monthPstNumbers = [0,31,59+leapPstYear,90+leapPstYear,120+leapPstYear,151+leapPstYear,181+leapPstYear,212+leapPstYear,243+leapPstYear,273+leapPstYear,304+leapPstYear,334+leapPstYear];
+	
+	
+	var chosenDay = monthPreNumbers[9] + dayoffset;
 	
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
 	element.append('<h3 id="countdowntitle" align="center">Countdown to October</h3>');
