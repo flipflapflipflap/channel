@@ -2255,7 +2255,7 @@ if (Math.abs(timeDiff) < 1000) {
 function countdown (element) {
 	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 1, monthoffset = 8, timeoffset = 12, temp, isFlapping = false, starttime = 19,hourDiff,dayDiff;
 	var D;
-	var chosenYear = 2024;
+	var chosenYear = 2023;
 	var daysInYear, dayOfYear, day2, numOfDays;
 	var leapPreYear = Number((new Date(chosenYear    ,1,29)).getMonth() == 1);
 	var leapPstYear = Number((new Date(chosenYear + 1,1,29)).getMonth() == 1);
@@ -2346,7 +2346,7 @@ function countdown (element) {
 		}	
 		else {
 			fieldNameElement.innerHTML = "See you next year...";
-			cdtext = Number(daysInPstYear+dayDiff-leapPreYear) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
+			cdtext = Number(daysInPstYear+dayDiff-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
 		}
 
 			document.getElementById("countdown").textContent = cdtext;
