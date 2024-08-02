@@ -2254,13 +2254,17 @@ if (Math.abs(timeDiff) < 1000) {
 
 function countdown (element) {
 	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 12,  timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19;
+	var chosenYear = 2024;
 	var daysInYear, dayOfYear, day2, numOfDays;
-Calendar cal;
+	var leapPreYear = Number((new Date(chosenYear    ,1,29)).getMonth() == 1);
+	var leapPstYear = Number((new Date(chosenYear + 1,1,29)).getMonth() == 1);
 	
-	cal =Calendar.getInstance();
-	cal.setTime(new Date());
-	numOfDays = cal.getActualMaximum(Calendar.DAY_OF_YEAR);
+	var daysInPreYear = 365 + leapPreYear;
+	var daysInPstYear = 365 + leapPstYear;	
+	var chosenDay = 274 + dayoffset + leapPreYear;
 	
+	var monthPreNumbers = [0,31,59+leapPreYear,90+leapPreYear,120+leapPreYear,151+leapPreYear,181+leapPreYear,212+leapPreYear,243+leapPreYear,273+leapPreYear,304+leapPreYear,334+leapPreYear];
+	var monthPstNumbers = [0,31,59+leapPstYear,90+leapPstYear,120+leapPstYear,151+leapPstYear,181+leapPstYear,212+leapPstYear,243+leapPstYear,273+leapPstYear,304+leapPstYear,334+leapPstYear];
 	
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
 	element.append('<h3 id="countdowntitle" align="center">Countdown to October</h3>');
@@ -2292,7 +2296,10 @@ Calendar cal;
 		second = D.getUTCSeconds();
 		
 		
-		
+				
+		dayOfYear = LocalDate.now( ZoneId.of( "UTC" ).getDayOfYear() );
+		daysInYear = ( Year.isLeap( year ) ) ? 366 : 365 ;
+		day2 = daysInYear - dayOfYear;
 		
 		
 
@@ -2324,7 +2331,7 @@ Calendar cal;
 		if (Hour > 23 || Minute > 59) {
 			console.error('Countdown error: time is incorrect ' + Hour + ' : ' + Minute + ' : ' + Seconds);
 		} else if (Month > 0) {
-			cdtext = numOfDays	+ ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+			cdtext = chosenDay + ' : ' + Number(monthPreNumbers[month-1] + day) + ' : ' + daysInPreYear + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 			//cdtext = daysInYear + ' : ' + dayOfYear + ' : ' + day2 + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 		}
 		else if (Month == 0) {
