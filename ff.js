@@ -2300,7 +2300,7 @@ function countdown (element) {
 		
 		
 		daysInYear = ( Year.isLeap( year ) ) ? 366 : 365 ;
-		dayOfYear = LocalDate.now( ZoneId.of( "UTC" ).getDayOfYear() ;
+		dayOfYear = LocalDate.now( ZoneId.of( "UTC" ).getDayOfYear() );
 		day2 = daysInYear - dayOfYear;
 		
 		
