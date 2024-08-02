@@ -2253,7 +2253,7 @@ if (Math.abs(timeDiff) < 1000) {
 
 
 function countdown (element) {
-	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 2, monthoffset = 8, timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19;
+	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 12, monthoffset = 10, timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19,hourDiff,dayDiff;
 	var D;
 	var chosenYear = 2024;
 	var daysInYear, dayOfYear, day2, numOfDays;
@@ -2268,6 +2268,7 @@ function countdown (element) {
 	
 	
 	var chosenDay = monthPreNumbers[monthoffset-1] + dayoffset;
+	var currentDay;
 	
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
 	element.append('<h3 id="countdowntitle" align="center">Countdown to October</h3>');
@@ -2299,8 +2300,13 @@ function countdown (element) {
 		second = D.getUTCSeconds();
 		
 		
+		currentDate = Number(monthPreNumbers[D.getUTCMonth()] + D.getUTCDate());
 
-		
+		dayDiff = chosenDay - currentDay;
+		hourDiff = starttime - hour -1;	
+		if(hourDiff < 0){
+			hourDiff += 24;
+		}		
 
 		Month = 10 - month;
 		Day = daysInMonth(month, year) - day;
@@ -2329,11 +2335,12 @@ function countdown (element) {
 		//check if time is reasonable. if not gtfo
 		if (Hour > 23 || Minute > 59) {
 			console.error('Countdown error: time is incorrect ' + Hour + ' : ' + Minute + ' : ' + Seconds);
-		} else if (Month > 0) {
-			cdtext = chosenDay + ' : ' + Number(monthPreNumbers[D.getUTCMonth()] + D.getUTCDate()) + ' : ' + daysInPreYear;// + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+		} else if (currentDay < chosenDay) {
+			cdtext = dayDiff + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;
+//			cdtext = chosenDay + ' : ' + Number(monthPreNumbers[D.getUTCMonth()] + D.getUTCDate()) + ' : ' + daysInPreYear;// + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 			//cdtext = daysInYear + ' : ' + dayOfYear + ' : ' + day2 + ' : ' + Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
 		}
-		else if (Month == 0) {
+		else if (currentDay == chosenDay) {
 			if (31 - dayoffset > Day) {
 						fieldNameElement.innerHTML = "Countdown to (next) October:";
 						cdtext = 11 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
