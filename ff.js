@@ -2333,7 +2333,7 @@ function countdown (element) {
 			console.error('Countdown error: time is incorrect ' + Minute + ' : ' + Seconds);
 		}
 		else if (currentDay <= chosenDay) {
-			if (currentDay == chosenDay && starttime - hour -1 < 0) {
+			if (currentDay == chosenDay && starttime - D.getUTCHours() -1 < 0) {
 					fieldNameElement.innerHTML = "";
 					cdtext = "THE TIME HAS COME";
 				}
