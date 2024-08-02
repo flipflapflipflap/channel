@@ -2263,8 +2263,8 @@ function countdown (element) {
 	var daysInPreYear = 365 + leapPreYear;
 	var daysInPstYear = 365 + leapPstYear;	
 	
-	var monthPreNumbers = [0,31,59+leapPreYear,90+leapPreYear,120+leapPreYear,151+leapPreYear,181+leapPreYear,212+leapPreYear,243+leapPreYear,273+leapPreYear,304+leapPreYear,334+leapPreYear];
-	var monthPstNumbers = [0,31,59+leapPstYear,90+leapPstYear,120+leapPstYear,151+leapPstYear,181+leapPstYear,212+leapPstYear,243+leapPstYear,273+leapPstYear,304+leapPstYear,334+leapPstYear];
+	var monthPreNumbers = [0,31,58+leapPreYear,89+leapPreYear,119+leapPreYear,150+leapPreYear,180+leapPreYear,211+leapPreYear,242+leapPreYear,272+leapPreYear,303+leapPreYear,333+leapPreYear];
+	var monthPstNumbers = [0,31,58+leapPstYear,89+leapPstYear,119+leapPstYear,150+leapPstYear,180+leapPstYear,211+leapPstYear,242+leapPstYear,272+leapPstYear,303+leapPstYear,333+leapPstYear];
 	
 	
 	var chosenDay = monthPreNumbers[9] + dayoffset;
