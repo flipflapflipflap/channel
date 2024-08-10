@@ -2254,8 +2254,8 @@ if (Math.abs(timeDiff) < 1000) {
 
 function countdown (element) {
 	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0;
-	var dayoffset = 12, dayoffsetPst =  11, monthoffset = 7, timeoffset = 12, temp, isFlapping = false, starttime = 19,hourDiff,dayDiff;
-	var chosenYear = 2025;
+	var dayoffset = 12, dayoffsetPst =  11, monthoffset = 10, timeoffset = 12, temp, isFlapping = false, starttime = 19,hourDiff,dayDiff;
+	var chosenYear = 2024;
 	var daysInYear, dayOfYear, day2, numOfDays;
 	var D;
 	
