@@ -1,15 +1,4 @@
-// stolen from https://cytu.be/r/25_days_of_autism
-// removed majority of effects
-// danmaku implementation uses someone else's modification of 25day's nico nico nii 
-// user interface, chat icons, stream countdown, and 
-//		video times kept from 25days (slightly modified)
-// probably a lot of junk in here that could be cleaned up, but I've 
-//		never worked with javascript before, and getting just this far
-//		was a pain. I'll try to come back later and fix things up.
-// also, something's wrong with the message history when the page loads up,
-//		but I can't figure out a solution. Seems to work fine during runtime though
-//		
-//
+// modified / stolen from https://cytu.be/r/25_days_of_autism
 
 
 
@@ -1671,7 +1660,7 @@ $(document).keydown(function(event) {
 	var tag = {}; tag.wrap = false; tag.braced = false;
 	switch (event.which) {
 		case 83:
-			tag.code   = 'sp';
+			tag.code   = 'spoiler';
 			tag.wrap   = true;
 			tag.braced = true;
 			break;
@@ -2264,10 +2253,28 @@ if (Math.abs(timeDiff) < 1000) {
 
 
 function countdown (element) {
-	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 7,  timeoffset = 12, temp, isFlapping = false, OctobHour = 0, starttime = 19;
+	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0;
+	var dayoffset = 12, dayoffsetPst =  11, monthoffset = 10, timeoffset = 12, temp, isFlapping = false, starttime = 19,hourDiff,dayDiff;
+	var chosenYear = 2024;
+	var daysInYear, dayOfYear, day2, numOfDays;
+	var D;
+	
+	var leapPreYear = Number((new Date(chosenYear    ,1,29)).getMonth() == 1);
+	var leapPstYear = Number((new Date(chosenYear + 1,1,29)).getMonth() == 1);
+	
+	var monthPreNumbers = [0,31,58+leapPreYear,89+leapPreYear,119+leapPreYear,150+leapPreYear,180+leapPreYear,211+leapPreYear,242+leapPreYear,272+leapPreYear,303+leapPreYear,333+leapPreYear];
+	var monthPstNumbers = [0,31,58+leapPstYear,89+leapPstYear,119+leapPstYear,150+leapPstYear,180+leapPstYear,211+leapPstYear,242+leapPstYear,272+leapPstYear,303+leapPstYear,333+leapPstYear];
+	
+	
+	var chosenDay = monthPreNumbers[monthoffset-1] + dayoffset;
+	var chosenDayPst = monthPstNumbers[monthoffset-1] + dayoffsetPst;
+	var currentDay;
+	
+	
+	
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
-	element.append('<h3 id="countdowntitle" align="center">Countdown to October</h3>');
-	element.append('<h1 id="countdown" align="center">' + Month + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds + '</h1>');
+	element.append('<h3 id="countdowntitle" align="center">Flip Flapping in:</h3>');
+	element.append('<h1 id="countdown" align="center">'  + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds + '</h1>');
 
 	var fieldNameElement = document.getElementById('countdowntitle');
 
@@ -2282,8 +2289,8 @@ function countdown (element) {
 	}
 
 	function time() { //does the time work
-		var D = new Date(new Date().getTime() - timeDiff);
 		var year, month, day, hour, minute, second;
+		D = new Date(new Date().getTime() - timeDiff);
 		//var offset = -300; //desired offset from UTC in minutes. EST: -300, EDT: -240
 
 		//D.setMinutes(D.getUTCMinutes() + offset);
@@ -2293,11 +2300,24 @@ function countdown (element) {
 		hour = D.getUTCHours();
 		minute = D.getUTCMinutes();
 		second = D.getUTCSeconds();
+		
+		
+		currentDay = Number(monthPreNumbers[D.getUTCMonth()] + D.getUTCDate());
 
-		Month = 10 - month;
+
+		if(chosenYear >= year) dayDiff = chosenDay - currentDay;
+		else dayDiff = chosenDayPst - currentDay;
+		
+		
+		
+		hourDiff = starttime - hour -1;	
+		if(hourDiff < 0){
+			hourDiff += 24;
+		}		
+
+		Month = monthoffset - month;
 		Day = daysInMonth(month, year) - day;
 		Hour = 23 - hour;
-		OctobHour = (dayoffset-day)*24 - hour + starttime -1;
 		Minute = 59 - minute;
 		Seconds = 59 - second;
 	}
@@ -2312,41 +2332,31 @@ function countdown (element) {
 	}
 
 	function make() { //checks the numbers then applies
-		if(Month < 10 && Month >= 0) Month = '0' + Month;
-		if(Day < 10) Day = '0' + Day;
-		if(Hour < 10) Hour = '0' + Hour;
+		var dT = dayDiff, hT = hourDiff;
+		if(dayDiff < 10) dT = '0' + dT;
+		if(hourDiff < 10) hT = '0' + hT;
 		if(Minute < 10) Minute = '0' + Minute;
 		if(Seconds < 10) Seconds = '0' + Seconds;//these lines add a 0 if it's less than 10
-
+	
 		//check if time is reasonable. if not gtfo
 		if (Hour > 23 || Minute > 59) {
-			console.error('Countdown error: time is incorrect ' + Hour + ' : ' + Minute + ' : ' + Seconds);
-		} else if (Month > 0) {
-			cdtext = Month - 1 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
+			console.error('Countdown error: time is incorrect ' + Minute + ' : ' + Seconds);
 		}
-		else if (Month == 0) {
-			if (31 - dayoffset > Day) {
-						fieldNameElement.innerHTML = "Countdown to (next) October:";
-						cdtext = 11 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
-					} else if ((31 - dayoffset == Day) && Hour < (24 - 19)) {
-						fieldNameElement.innerHTML = "";
-						cdtext = "THE TIME HAS COME";
-					} else {
-							temp = dayoffset - day;
-							temp = '0' + temp;
-							fieldNameElement.innerHTML = "Flip Flapping in:";
-							cdtext = OctobHour + ' : ' + Minute + ' : ' + Seconds;
-					}
-		}
+		else if (currentDay <= chosenDay && chosenYear <= D.getUTCFullYear() ) {
+			if (currentDay == chosenDay && starttime - D.getUTCHours() -1 < 0) {
+					fieldNameElement.innerHTML = "";
+					cdtext = "THE TIME HAS COME";
+				}
+			else {
+					cdtext = dT + ' : ' + hT + ' : ' + Minute + ' : ' + Seconds;
+				}
+		}	
 		else {
-			if (Month == -1){
-			cdtext = 10 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
-			}
-			else{
-			cdtext = 09 + ' : ' + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds;
-
-			}
+			fieldNameElement.innerHTML = "See you next year...";
+			if(chosenYear > D.getUTCFullYear()) cdtext = Number(chosenDay + 365 + Number((new Date(D.getUTCFullYear(),1,29)).getMonth() == 1) - currentDay) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
+			else cdtext = Number(chosenDayPst + 365 + leapPreYear - currentDay) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;
 			
+		
 		}
 
 			document.getElementById("countdown").textContent = cdtext;
@@ -2384,7 +2394,6 @@ socket.on('setMotd', function (data) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 
 
@@ -2828,6 +2837,7 @@ class CustomTextTriggers {
 
 
 CustomTextTriggers.init();
+
 
 
 
