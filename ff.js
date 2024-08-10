@@ -2261,8 +2261,6 @@ function countdown (element) {
 	
 	var leapPreYear = Number((new Date(chosenYear    ,1,29)).getMonth() == 1);
 	var leapPstYear = Number((new Date(chosenYear + 1,1,29)).getMonth() == 1);
-	var daysInPreYear = 365 + Number((new Date(chosenYear    ,1,29)).getMonth() == 1);	
-	var daysInPstYear = 365 + Number((new Date(chosenYear + 1,1,29)).getMonth() == 1);	
 	
 	var monthPreNumbers = [0,31,58+leapPreYear,89+leapPreYear,119+leapPreYear,150+leapPreYear,180+leapPreYear,211+leapPreYear,242+leapPreYear,272+leapPreYear,303+leapPreYear,333+leapPreYear];
 	var monthPstNumbers = [0,31,58+leapPstYear,89+leapPstYear,119+leapPstYear,150+leapPstYear,180+leapPstYear,211+leapPstYear,242+leapPstYear,272+leapPstYear,303+leapPstYear,333+leapPstYear];
@@ -2355,8 +2353,8 @@ function countdown (element) {
 		}	
 		else {
 			fieldNameElement.innerHTML = "See you next year...";
-			if(chosenYear > D.getUTCFullYear()) cdtext = Number(daysInPreYear+dayDiff-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
-			else cdtext = Number(daysInPstYear+(chosenDayPst - currentDay)-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
+			if(chosenYear > D.getUTCFullYear()) cdtext = Number(365 + leapPreYear +dayDiff-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
+			else cdtext = Number(365 + leapPstYear +(chosenDayPst - currentDay)-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
 		}
 
 			document.getElementById("countdown").textContent = cdtext;
