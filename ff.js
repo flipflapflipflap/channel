@@ -2253,19 +2253,26 @@ if (Math.abs(timeDiff) < 1000) {
 
 
 function countdown (element) {
-	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0, dayoffset = 12, monthoffset = 10, timeoffset = 12, temp, isFlapping = false, starttime = 19,hourDiff,dayDiff;
-	var D;
+	var Month = 0, Day = 0, day = 0, Hour = 0, Minute = 0, Seconds = 0;
+	var dayoffset = 12, dayoffsetPst =  11, monthoffset = 10, timeoffset = 12, temp, isFlapping = false, starttime = 19,hourDiff,dayDiff;
 	var chosenYear = 2024;
 	var daysInYear, dayOfYear, day2, numOfDays;
+	var D;
 	
 	var leapPreYear = Number((new Date(chosenYear    ,1,29)).getMonth() == 1);
+	var leapPstYear = Number((new Date(chosenYear    ,1,29)).getMonth() == 1);
+	var daysInPreYear = 365 + Number((new Date(chosenYear    ,1,29)).getMonth() == 1);	
 	var daysInPstYear = 365 + Number((new Date(chosenYear + 1,1,29)).getMonth() == 1);	
 	
 	var monthPreNumbers = [0,31,58+leapPreYear,89+leapPreYear,119+leapPreYear,150+leapPreYear,180+leapPreYear,211+leapPreYear,242+leapPreYear,272+leapPreYear,303+leapPreYear,333+leapPreYear];
+	var monthPstNumbers = [0,31,58+leapPstYear,89+leapPstYear,119+leapPstYear,150+leapPstYear,180+leapPstYear,211+leapPstYear,242+leapPstYear,272+leapPstYear,303+leapPstYear,333+leapPstYear];
 	
 	
 	var chosenDay = monthPreNumbers[monthoffset-1] + dayoffset;
+	var chosenDayPst = monthPstNumbers[monthoffset-1] + dayoffsetPst;
 	var currentDay;
+	
+	
 	
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
 	element.append('<h3 id="countdowntitle" align="center">Flip Flapping in:</h3>');
@@ -2299,13 +2306,18 @@ function countdown (element) {
 		
 		currentDay = Number(monthPreNumbers[D.getUTCMonth()] + D.getUTCDate());
 
-		dayDiff = chosenDay - currentDay;
+
+		if(chosenYear >= year) dayDiff = chosenDay - currentDay;
+		else dayDiff = chosenDayPst - currentDay;
+		
+		
+		
 		hourDiff = starttime - hour -1;	
 		if(hourDiff < 0){
 			hourDiff += 24;
 		}		
 
-		Month = 10 - month;
+		Month = monthoffset - month;
 		Day = daysInMonth(month, year) - day;
 		Hour = 23 - hour;
 		Minute = 59 - minute;
@@ -2332,7 +2344,7 @@ function countdown (element) {
 		if (Hour > 23 || Minute > 59) {
 			console.error('Countdown error: time is incorrect ' + Minute + ' : ' + Seconds);
 		}
-		else if (currentDay <= chosenDay) {
+		else if (currentDay <= chosenDay && chosenYear <= D.getUTCFullYear() ) {
 			if (currentDay == chosenDay && starttime - D.getUTCHours() -1 < 0) {
 					fieldNameElement.innerHTML = "";
 					cdtext = "THE TIME HAS COME";
@@ -2343,7 +2355,8 @@ function countdown (element) {
 		}	
 		else {
 			fieldNameElement.innerHTML = "See you next year...";
-			cdtext = Number(daysInPstYear+dayDiff-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
+			if(chosenYear > D.getUTCFullYear()) cdtext = Number(daysInPreYear+dayDiff-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
+			else cdtext = Number(daysInPstYear+(chosenDayPst - currentDay)-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
 		}
 
 			document.getElementById("countdown").textContent = cdtext;
