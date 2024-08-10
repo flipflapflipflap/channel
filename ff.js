@@ -1660,7 +1660,7 @@ $(document).keydown(function(event) {
 	var tag = {}; tag.wrap = false; tag.braced = false;
 	switch (event.which) {
 		case 83:
-			tag.code   = 'spoiler';
+			tag.code   = 'sp';
 			tag.wrap   = true;
 			tag.braced = true;
 			break;
