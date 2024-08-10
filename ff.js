@@ -2353,10 +2353,10 @@ function countdown (element) {
 		}	
 		else {
 			fieldNameElement.innerHTML = "See you next year...";
-			if(chosenYear > D.getUTCFullYear()) cdtext = Number(365 + leapPreYear +dayDiff-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
-			else cdtext = Number(365 + leapPstYear +(chosenDayPst - currentDay)-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;	
+			if(chosenYear > D.getUTCFullYear()) cdtext = Number(chosenDay + 365 + Number((new Date(D.getUTCFullYear(),1,29)).getMonth() == 1) - currentDay) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
+			else cdtext = Number(chosenDayPst + 365 + leapPreYear - currentDay) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;
 			
-			cdtext = Number(365 + leapPstYear +dayDiff-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
+		
 		}
 
 			document.getElementById("countdown").textContent = cdtext;
