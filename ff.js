@@ -2260,7 +2260,7 @@ function countdown (element) {
 	var D;
 	
 	var leapPreYear = Number((new Date(chosenYear    ,1,29)).getMonth() == 1);
-	var leapPstYear = Number((new Date(chosenYear    ,1,29)).getMonth() == 1);
+	var leapPstYear = Number((new Date(chosenYear + 1,1,29)).getMonth() == 1);
 	var daysInPreYear = 365 + Number((new Date(chosenYear    ,1,29)).getMonth() == 1);	
 	var daysInPstYear = 365 + Number((new Date(chosenYear + 1,1,29)).getMonth() == 1);	
 	
