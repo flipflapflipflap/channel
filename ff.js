@@ -2354,7 +2354,9 @@ function countdown (element) {
 		else {
 			fieldNameElement.innerHTML = "See you next year...";
 			if(chosenYear > D.getUTCFullYear()) cdtext = Number(365 + leapPreYear +dayDiff-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
-			else cdtext = Number(365 + leapPstYear +(chosenDayPst - currentDay)-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
+			else cdtext = Number(365 + leapPstYear +(chosenDayPst - currentDay)-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;	
+			
+			cdtext = Number(daysInPstYear+dayDiff-1) + ' : ' + hourDiff + ' : ' + Minute + ' : ' + Seconds;		
 		}
 
 			document.getElementById("countdown").textContent = cdtext;
