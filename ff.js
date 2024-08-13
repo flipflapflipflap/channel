@@ -2313,7 +2313,7 @@ function countdown (element) {
 		hourDiff = starttime - hour -1;	
 		if(hourDiff < 0){
 			hourDiff += 24;
-			daydiff -= 1;
+			dayDiff -= 1;
 		}		
 
 		Month = monthoffset - month;
