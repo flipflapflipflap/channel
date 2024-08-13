@@ -2313,6 +2313,7 @@ function countdown (element) {
 		hourDiff = starttime - hour -1;	
 		if(hourDiff < 0){
 			hourDiff += 24;
+			daydiff -= 1;
 		}		
 
 		Month = monthoffset - month;
@@ -2347,9 +2348,7 @@ function countdown (element) {
 					fieldNameElement.innerHTML = "";
 					cdtext = "THE TIME HAS COME";
 				}
-			else {
-//					cdtext = dT + ' : ' + hT + ' : ' + Minute + ' : ' + Seconds;
-				
+			else {					
 					cdtext = chosenDay + ' : ' + currentDay + ' : ' + Minute + ' : ' + Seconds;
 				}
 		}	
