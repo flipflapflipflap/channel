@@ -2349,7 +2349,7 @@ function countdown (element) {
 					cdtext = "THE TIME HAS COME";
 				}
 			else {					
-					cdtext = chosenDay + ' : ' + currentDay + ' : ' + Minute + ' : ' + Seconds;
+					cdtext = dT + ' : ' + hT + ' : ' + Minute + ' : ' + Seconds;
 				}
 		}	
 		else {
