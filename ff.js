@@ -2273,7 +2273,7 @@ function countdown (element) {
 	
 	
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
-	element.append('<h3 id="countdowntitle" align="center">I T S   F L A P P E N I N G</h3>');
+	element.append('<h3 id="countdowntitle" align="center">Next Flip Flapping:</h3>');
 	element.append('<h1 id="countdown" align="center">'  + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds + '</h1>');
 
 	var fieldNameElement = document.getElementById('countdowntitle');
@@ -2346,7 +2346,7 @@ function countdown (element) {
 		else if (currentDay <= chosenDay && chosenYear <= D.getUTCFullYear() ) {
 			if (currentDay == chosenDay && starttime - D.getUTCHours() -1 < 0) {
 					fieldNameElement.innerHTML = "";
-					cdtext = "I T ' S   F L A P P E N I N G";
+					cdtext = "IT'S FLAPPENING";
 				}
 			else {					
 					cdtext = dT + ' : ' + hT + ' : ' + Minute + ' : ' + Seconds;
