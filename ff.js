@@ -15,7 +15,7 @@ var adPercent = 0.1;
 
 var Favicon_URL = `${SCRIPT_FOLDER_URL}/Images/uex.png`;
 
-var ChannelName_Caption = "Let's Flip Flapping!";
+var ChannelName_Caption = "CyTube";
 
 var TitleBarDescription_Caption = '>Streaming:';
 
@@ -2273,7 +2273,7 @@ function countdown (element) {
 	
 	
 	//var month = 0, day = 0, hour = 0, minute = 0, seconds = 0;
-	element.append('<h3 id="countdowntitle" align="center">Flip Flapping in:</h3>');
+	element.append('<h3 id="countdowntitle" align="center">Flappening in:</h3>');
 	element.append('<h1 id="countdown" align="center">'  + Day + ' : ' + Hour + ' : ' + Minute + ' : ' + Seconds + '</h1>');
 
 	var fieldNameElement = document.getElementById('countdowntitle');
