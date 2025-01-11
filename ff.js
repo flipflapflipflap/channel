@@ -1715,8 +1715,7 @@ $(document).keydown(function(event) {
 // paste into channel settings -> edit -> javascript
 // stolen from https://cytu.be/r/25_days_of_autism
 // extracted nico nico code from december.js and css
-// ripped out all the garbage (what the hell is wrong with these people)
-// changed the button to say danmaku (uncultured assholes)
+// changed the button to say danmaku
 
 // The interval of time (in ms) to flush messages to the screen
 var NICO_NICO_MESSAGE_QUEUE_TIME = getOrDefault(CHANNEL.name + "_NICO_NICO_MESSAGE_QUEUE_TIME", 100);
